@@ -331,12 +331,12 @@ export function ChainSelector({ isTransparent = false }: ChainSelectorProps) {
           onClick={() => setIsOpen(!isOpen)}
           className={`flex items-center gap-2 h-14 px-6 font-bold rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[3px_3px_0_1px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all ${
             isTransparent
-              ? 'bg-white/20 text-white border-[3px] border-black'
+              ? 'bg-white/20 text-black border-[3px] border-black'
               : 'bg-white text-black outline outline-[3px] outline-black'
           }`}
         >
           {getChainIcon(chain!)}
-          <span className={`text-base ${isTransparent ? 'text-white' : 'text-black'}`}>{getDisplayAddress()}</span>
+          <span className="text-base text-black">{getDisplayAddress()}</span>
         </button>
 
         {isOpen && (
@@ -428,7 +428,7 @@ export function ChainSelector({ isTransparent = false }: ChainSelectorProps) {
         onClick={() => setIsOpen(!isOpen)}
         className={`h-14 px-6 font-bold rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[3px_3px_0_1px_rgba(0,0,0,1)] active:translate-x-0 active:translate-y-0 active:shadow-none transition-all whitespace-nowrap flex items-center justify-center ${
           isTransparent
-            ? 'bg-white/20 text-white border-[3px] border-black'
+            ? 'bg-white/20 text-black border-[3px] border-black'
             : 'bg-white text-black outline outline-[3px] outline-black'
         }`}
       >

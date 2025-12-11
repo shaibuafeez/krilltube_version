@@ -204,10 +204,10 @@ export default function ScrollsPage() {
         </div>
 
         {/* Content overlay - Stays within main content area */}
-        <div className="relative z-10 h-full px-8">
+        <div className="relative z-10 h-full px-16">
           {/* Quote Text - Right aligned, absolute positioned */}
           <p
-            className="absolute right-8 top-8 w-[759px] text-white text-right drop-shadow-lg [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.7)]"
+            className="absolute right-16 top-8 w-[759px] text-white text-right drop-shadow-lg [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.7)]"
             style={{
               fontFamily: "'Fredericka the Great'",
               fontWeight: 400,
@@ -219,7 +219,7 @@ export default function ScrollsPage() {
           </p>
 
           {/* Scrolls Title and Subscribe - Left aligned, bottom area */}
-          <div className="absolute left-8 bottom-6 flex flex-row items-end gap-10">
+          <div className="absolute left-16 bottom-6 flex flex-row items-end gap-10">
             {/* Text container */}
             <div className="flex flex-col items-start">
               <h1 className="text-white text-[48px] font-semibold leading-[58px]" style={{ fontFamily: "'Fredoka'" }}>Scrolls</h1>
@@ -246,8 +246,8 @@ export default function ScrollsPage() {
         </div>
       </div>
 
-      {/* Category Tabs - Below the underwater image */}
-      <div className="flex items-center gap-2 overflow-x-auto px-8 py-4">
+      {/* ==================== CATEGORY FILTER TABS ==================== */}
+      <div className="flex items-center gap-2 overflow-x-auto px-16 py-6">
         {categories.map((cat) => (
           <button
             key={cat}
@@ -263,8 +263,8 @@ export default function ScrollsPage() {
         ))}
       </div>
 
-      {/* Scrolls Content Section */}
-      <div className="px-8 pb-6">
+      {/* ==================== SCROLLS CONTENT SECTION ==================== */}
+      <div className="px-16 pb-6">
         {/* Scrolls Grid - 2 columns */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {mockScrolls.map((scroll) => (

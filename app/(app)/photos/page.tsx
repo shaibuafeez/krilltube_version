@@ -844,8 +844,8 @@ export default function PhotosPage() {
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-[#0668A6] via-[#0668A6] to-[#1AAACE]">
-      {/* Photos Content Section - No hero banner, direct to content */}
-      <div className="px-8 pt-10 pb-6">
+      {/* ==================== PHOTOS CONTENT SECTION ==================== */}
+      <div className="px-16 pt-10 pb-6">
         {loading ? (
           <div className="flex items-center justify-center py-24">
             <div className="text-center">

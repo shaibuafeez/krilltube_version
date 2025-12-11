@@ -570,10 +570,10 @@ export default function UnsealScrollPage() {
         </div>
 
         {/* Content overlay - Stays within main content area */}
-        <div className="relative z-30 h-full px-8 overflow-visible">
+        <div className="relative z-30 h-full px-16 overflow-visible">
           {/* Title - Right aligned, absolute positioned */}
           <p
-            className="absolute right-8 top-8 w-[759px] text-white text-right drop-shadow-lg [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.7)]"
+            className="absolute right-16 top-8 w-[759px] text-white text-right drop-shadow-lg [text-shadow:_2px_2px_4px_rgb(0_0_0_/_0.7)]"
             style={{
               fontFamily: "'Fredericka the Great'",
               fontWeight: 400,
@@ -585,7 +585,7 @@ export default function UnsealScrollPage() {
           </p>
 
           {/* Author info and controls - Left aligned, bottom area */}
-          <div className="absolute left-8 bottom-6 flex flex-row items-end justify-between w-[calc(100%-64px)]">
+          <div className="absolute left-16 bottom-6 flex flex-row items-end justify-between w-[calc(100%-128px)]">
             {/* Left section: Author info */}
             <div className="flex flex-row items-end gap-4">
               {/* Text container */}

@@ -564,7 +564,7 @@ export default function WatchPage() {
   return (
     <div className="w-full min-h-screen bg-[#0668A6]">
       {/* Main Content */}
-      <div className="pl-20 pr-12 pt-12 pb-4 flex flex-col justify-start items-start gap-0">
+      <div className="px-16 pt-12 pb-4 flex flex-col justify-start items-start gap-0">
         {/* Top Row - Video Player and Recommended Videos */}
         <div className="w-full flex justify-start items-start gap-6">
           {/* Left - Video Player */}

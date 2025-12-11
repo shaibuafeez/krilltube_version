@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import Image from 'next/image';
 import { ConnectWallet } from './ConnectWallet';
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
@@ -14,12 +13,11 @@ interface HeaderProps {
   showHamburgerOnly?: boolean;
 }
 
-export function Header({ onMenuClick, isSidebarOpen = true, onToggleCollapse, isSidebarCollapsed = false, showHamburgerOnly = false }: HeaderProps) {
+export function Header({ onToggleCollapse, isSidebarCollapsed = false, showHamburgerOnly = false }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const pathname = usePathname();
 
-  const isTransparent = pathname === '/scrolls' || pathname.startsWith('/scrolls/');
+  const isTransparent = pathname === '/scrolls' || pathname.startsWith('/scrolls/') || pathname === '/manga' || pathname.startsWith('/manga/');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,14 +29,14 @@ export function Header({ onMenuClick, isSidebarOpen = true, onToggleCollapse, is
 
   // Determine margin based on sidebar state
   const getMarginClass = () => {
-    if (showHamburgerOnly) return 'ml-0';
-    if (isSidebarCollapsed) return 'ml-[160px]';
-    return 'ml-[320px]';
+    if (showHamburgerOnly) return 'lg:ml-0';
+    if (isSidebarCollapsed) return 'lg:ml-[160px]';
+    return 'lg:ml-[285px]';
   };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-[60] w-full">
-      <div className={`flex items-center gap-12 px-8 pt-5 transition-all duration-300 ${getMarginClass()}`}>
+      <div className={`flex items-center gap-12 px-16 pt-5 transition-all duration-300 ${getMarginClass()}`}>
         {/* Hamburger menu - only shown when sidebar is fully hidden */}
         {showHamburgerOnly && (
           <div className="flex items-center gap-3 flex-shrink-0">
@@ -59,7 +57,7 @@ export function Header({ onMenuClick, isSidebarOpen = true, onToggleCollapse, is
         {/* Search Bar - Takes up most space */}
         <div className="flex-1 min-w-0">
           <form onSubmit={handleSearch} className="w-full">
-            <div className="w-full h-14 p-2 bg-cyan-500/30 rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black inline-flex flex-col justify-center items-center gap-2.5">
+            <div className={`w-full h-14 p-2 rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black inline-flex flex-col justify-center items-center gap-2.5 ${isTransparent ? 'bg-white/20' : 'bg-cyan-500/30'}`}>
               <div className="self-stretch px-5 py-[5px] inline-flex justify-between items-center">
                 <input
                   type="text"
@@ -77,14 +75,14 @@ export function Header({ onMenuClick, isSidebarOpen = true, onToggleCollapse, is
         {/* Right Section - Compact buttons */}
         <div className="flex items-center gap-4 flex-shrink-0">
           {/* Bell Icon */}
-          <button className="w-14 h-14 rounded-full border-[3px] border-white bg-gradient-to-br from-[#EF4330]/70 to-[#1AAACE]/70 shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] flex items-center justify-center hover:opacity-80 transition-opacity">
+          <button className="w-14 h-14 rounded-full border-[3px] border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] flex items-center justify-center hover:opacity-80 transition-opacity bg-gradient-to-br from-[#EF4330]/70 to-[#1AAACE]/70">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
           </button>
 
           {/* History/Clock Icon */}
-          <button className="w-14 h-14 rounded-full border-[3px] border-white bg-gradient-to-br from-[#EF4330]/70 to-[#1AAACE]/70 shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] flex items-center justify-center hover:opacity-80 transition-opacity">
+          <button className="w-14 h-14 rounded-full border-[3px] border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] flex items-center justify-center hover:opacity-80 transition-opacity bg-gradient-to-br from-[#EF4330]/70 to-[#1AAACE]/70">
             <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -95,7 +93,7 @@ export function Header({ onMenuClick, isSidebarOpen = true, onToggleCollapse, is
             href="/upload"
             className={`font-bold h-14 px-6 rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] hover:shadow-[3px_3px_0_1px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-base w-[86px] whitespace-nowrap flex items-center justify-center ${
               isTransparent
-                ? 'bg-white/20 text-white border-[3px] border-black'
+                ? 'bg-white/20 border-[3px] border-black text-black'
                 : 'bg-white text-black outline outline-[3px] outline-black'
             }`}
           >

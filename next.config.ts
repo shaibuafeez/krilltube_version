@@ -67,6 +67,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'placehold.co',
       },
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
     ],
     // Increase timeout for slow Walrus responses
     minimumCacheTTL: 60,

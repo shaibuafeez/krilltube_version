@@ -19,11 +19,14 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Initialize multi-chain wallet authentication
   const walletAuth = useMultiChainAuth();
 
-  // Check if we're on an unseal scroll page (scrolls/[id])
+  // Check if we're on a content viewing page where sidebar should fully hide when collapsed
   const isUnsealScrollPage = pathname?.match(/^\/scrolls\/[^/]+$/);
+  const isMangaChapterPage = pathname?.match(/^\/manga\/[^/]+\/chapter\/[^/]+$/);
+  const isWatchPage = pathname?.match(/^\/watch\/[^/]+$/);
 
-  // On unseal scroll pages, collapsed sidebar should be fully hidden
-  const shouldFullyHideSidebar = isUnsealScrollPage && isSidebarCollapsed;
+  // On content viewing pages, collapsed sidebar should be fully hidden
+  const isContentViewingPage = isUnsealScrollPage || isMangaChapterPage || isWatchPage;
+  const shouldFullyHideSidebar = isContentViewingPage && isSidebarCollapsed;
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const closeSidebar = () => setIsSidebarOpen(false);
@@ -35,7 +38,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         onClose={closeSidebar}
         isCollapsed={isSidebarCollapsed}
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-        hideWhenCollapsed={!!isUnsealScrollPage}
+        hideWhenCollapsed={!!isContentViewingPage}
       />
       <Header
         onMenuClick={toggleSidebar}
@@ -45,7 +48,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         showHamburgerOnly={!!shouldFullyHideSidebar}
       />
       <div className="flex min-h-screen bg-gradient-to-br from-[#0668A6] via-[#0668A6] to-[#1AAACE]">
-        <main className={`flex-1 min-h-screen pt-[60px] bg-gradient-to-br from-[#0668A6] via-[#0668A6] to-[#1AAACE] transition-all duration-300 ${shouldFullyHideSidebar ? 'lg:ml-0' : isSidebarCollapsed ? 'lg:ml-[160px]' : 'lg:ml-[320px]'}`}>
+        <main className={`flex-1 min-h-screen pt-[60px] bg-gradient-to-br from-[#0668A6] via-[#0668A6] to-[#1AAACE] transition-all duration-300 ${shouldFullyHideSidebar ? 'lg:ml-0' : isSidebarCollapsed ? 'lg:ml-[160px]' : 'lg:ml-[285px]'}`}>
           <SidebarProvider isSidebarCollapsed={isSidebarCollapsed} isFullyHidden={!!shouldFullyHideSidebar}>
             {children}
           </SidebarProvider>
