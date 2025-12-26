@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useCurrentAccount } from '@mysten/dapp-kit';
+import DonationModal from './DonationModal';
 
 interface ChatMessage {
   id: string;
@@ -17,13 +18,15 @@ interface LiveChatProps {
   roomName: string;
   isBroadcaster?: boolean;
   streamId: string;
+  creatorAddress: string;
 }
 
-export default function LiveChat({ roomName, isBroadcaster = false, streamId }: LiveChatProps) {
+export default function LiveChat({ roomName, isBroadcaster = false, streamId, creatorAddress }: LiveChatProps) {
   const currentAccount = useCurrentAccount();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -119,6 +122,11 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId }: 
     } catch (error) {
       console.error('[LiveChat] Failed to delete message:', error);
     }
+  };
+
+  const handleDonationSuccess = (amount: string, message: string, txDigest: string) => {
+    console.log('[LiveChat] Donation successful:', { amount, message, txDigest });
+    // The Super Chat message will appear via polling
   };
 
   return (
@@ -246,7 +254,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId }: 
 
       {/* Message Input */}
       <div className="p-4 border-t-[3px] border-black bg-white">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
+        <form onSubmit={handleSendMessage} className="flex gap-2 mb-2">
           <input
             type="text"
             value={inputMessage}
@@ -283,7 +291,36 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId }: 
             {isLoading ? '...' : 'Send'}
           </button>
         </form>
+
+        {/* Super Chat Button */}
+        <button
+          onClick={() => setIsDonationModalOpen(true)}
+          disabled={!currentAccount?.address}
+          className="w-full px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500
+            rounded-[32px] text-black font-bold font-['Outfit'] text-sm
+            shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
+            outline outline-2 outline-offset-[-2px] outline-black
+            hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
+            hover:translate-x-[1px]
+            hover:translate-y-[1px]
+            disabled:opacity-50 disabled:cursor-not-allowed
+            disabled:hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
+            disabled:hover:translate-x-0
+            disabled:hover:translate-y-0
+            transition-all"
+        >
+          💰 Send Super Chat (Donate)
+        </button>
       </div>
+
+      {/* Donation Modal */}
+      <DonationModal
+        isOpen={isDonationModalOpen}
+        onClose={() => setIsDonationModalOpen(false)}
+        streamId={streamId}
+        creatorAddress={creatorAddress}
+        onDonationSuccess={handleDonationSuccess}
+      />
     </div>
   );
 }

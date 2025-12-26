@@ -176,6 +176,7 @@ export default function BroadcastPage() {
               <LiveChat
                 roomName={roomName}
                 streamId={streamInfo?.id || ''}
+                creatorAddress={streamInfo?.creatorId || ''}
                 isBroadcaster={true}
               />
             </div>

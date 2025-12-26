@@ -165,6 +165,7 @@ export default function WatchStreamPage() {
               <LiveChat
                 roomName={roomName}
                 streamId={streamInfo?.id || ''}
+                creatorAddress={streamInfo?.creatorId || ''}
                 isBroadcaster={false}
               />
             </div>
