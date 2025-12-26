@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
     if (role === 'broadcaster' && userId === liveStream.creatorId) {
       // Creator gets broadcaster token
-      token = generateBroadcasterToken(roomName, userId, userName || liveStream.title);
+      token = await generateBroadcasterToken(roomName, userId, userName || liveStream.title);
 
       // Update stream status to "live" when broadcaster joins
       if (liveStream.status === 'scheduled') {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
       }
     } else {
       // Viewers get viewer token
-      token = generateViewerToken(roomName, userId, userName || `Viewer-${userId.slice(0, 8)}`);
+      token = await generateViewerToken(roomName, userId, userName || `Viewer-${userId.slice(0, 8)}`);
 
       // Track viewer join
       await prisma.streamViewer.create({

@@ -42,11 +42,11 @@ export async function createLivekitRoom(
 /**
  * Generate access token for a broadcaster (publisher)
  */
-export function generateBroadcasterToken(
+export async function generateBroadcasterToken(
   roomName: string,
   identity: string,
   name?: string
-): string {
+): Promise<string> {
   const at = new AccessToken(apiKey, apiSecret, {
     identity,
     name: name || identity,
@@ -60,7 +60,7 @@ export function generateBroadcasterToken(
     canPublishData: true,
   });
 
-  const jwt = at.toJwt();
+  const jwt = await at.toJwt();
   console.log('[LiveKit] Generated broadcaster token:', typeof jwt, jwt.substring(0, 50) + '...');
   return jwt;
 }
@@ -68,11 +68,11 @@ export function generateBroadcasterToken(
 /**
  * Generate access token for a viewer (subscriber only)
  */
-export function generateViewerToken(
+export async function generateViewerToken(
   roomName: string,
   identity: string,
   name?: string
-): string {
+): Promise<string> {
   const at = new AccessToken(apiKey, apiSecret, {
     identity,
     name: name || identity,
@@ -86,7 +86,9 @@ export function generateViewerToken(
     canPublishData: true, // Allow chat messages
   });
 
-  return at.toJwt();
+  const jwt = await at.toJwt();
+  console.log('[LiveKit] Generated viewer token:', typeof jwt, jwt.substring(0, 50) + '...');
+  return jwt;
 }
 
 /**

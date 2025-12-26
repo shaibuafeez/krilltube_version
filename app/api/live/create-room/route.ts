@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     console.log('[API CreateRoom] LiveStream created:', liveStream.id);
 
     // Generate broadcaster token for the creator
-    const broadcasterToken = generateBroadcasterToken(roomName, creatorId, title);
+    const broadcasterToken = await generateBroadcasterToken(roomName, creatorId, title);
 
     return NextResponse.json({
       success: true,
