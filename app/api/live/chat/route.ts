@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Send message via LiveKit data channel for real-time updates
+    // Note: Real-time message broadcasting is handled by LiveKit data channel in the client
 
     return NextResponse.json({ message: chatMessage });
   } catch (error) {

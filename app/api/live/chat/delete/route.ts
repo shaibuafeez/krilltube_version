@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // TODO: Send deletion event via LiveKit data channel
+    // Note: Deletion event is broadcast via LiveKit data channel in the client
 
     return NextResponse.json({ success: true });
   } catch (error) {

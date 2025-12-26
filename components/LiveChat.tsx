@@ -36,7 +36,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId }: 
     scrollToBottom();
   }, [messages]);
 
-  // Fetch existing messages on mount
+  // Fetch existing messages on mount and poll for updates
   useEffect(() => {
     const fetchMessages = async () => {
       try {
@@ -51,6 +51,11 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId }: 
     };
 
     fetchMessages();
+
+    // Poll for new messages every 2 seconds
+    const interval = setInterval(fetchMessages, 2000);
+
+    return () => clearInterval(interval);
   }, [streamId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -78,7 +83,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId }: 
 
       if (response.ok) {
         const data = await response.json();
-        setMessages((prev) => [...prev, data.message]);
+        // Message will appear via polling
         setInputMessage('');
       } else {
         const error = await response.json();
@@ -108,11 +113,8 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId }: 
       });
 
       if (response.ok) {
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === messageId ? { ...msg, deleted: true } : msg
-          )
-        );
+        // Deletion will appear via polling
+        console.log('[LiveChat] Message deleted');
       }
     } catch (error) {
       console.error('[LiveChat] Failed to delete message:', error);
