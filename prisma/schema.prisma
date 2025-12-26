@@ -166,6 +166,7 @@ model Video {
   creatorConfigs       CreatorConfig[]   @relation("VideoToCreatorConfig")
   likes                VideoLike[]       @relation("VideoToLikes")
   comments             VideoComment[]    @relation("VideoToComments")
+  liveStream           LiveStream?       @relation("LiveStreamToVideo")
 
   @@index([creatorId])
   @@index([masterBlobObjectId])
@@ -366,4 +367,57 @@ model TextCreatorConfig {
   @@index([objectId])
   @@index([chain])
   @@map("text_creator_configs")
+}
+
+// ==============================================================================
+// LIVE STREAMING MODELS
+// ==============================================================================
+
+model LiveStream {
+  id              String   @id @default(cuid())
+  roomName        String   @unique @map("room_name")
+  title           String
+  description     String?
+  creatorId       String   @map("creator_id")
+  
+  // Stream status: "scheduled", "live", "ended"
+  status          String   @default("scheduled")
+  
+  // LiveKit room configuration
+  maxParticipants Int      @default(100) @map("max_participants")
+  
+  // Timestamps
+  scheduledAt     DateTime? @map("scheduled_at")
+  startedAt       DateTime? @map("started_at")
+  endedAt         DateTime? @map("ended_at")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  
+  // VOD after stream ends (linked to Video model)
+  videoId         String?  @unique @map("video_id")
+  video           Video?   @relation("LiveStreamToVideo", fields: [videoId], references: [id])
+  
+  // Track viewers
+  viewers         StreamViewer[] @relation("LiveStreamToViewers")
+  
+  @@index([creatorId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([createdAt])
+  @@map("live_streams")
+}
+
+model StreamViewer {
+  id            String    @id @default(cuid())
+  streamId      String    @map("stream_id")
+  viewerAddress String    @map("viewer_address")
+  joinedAt      DateTime  @default(now()) @map("joined_at")
+  leftAt        DateTime? @map("left_at")
+  
+  stream        LiveStream @relation("LiveStreamToViewers", fields: [streamId], references: [id], onDelete: Cascade)
+  
+  @@index([streamId])
+  @@index([viewerAddress])
+  @@index([joinedAt])
+  @@map("stream_viewers")
 }
