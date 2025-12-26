@@ -42,6 +42,9 @@ export default function BroadcastPage() {
         }
 
         const data = await response.json();
+        console.log('[Broadcast] Token response:', data);
+        console.log('[Broadcast] Token type:', typeof data.token);
+        console.log('[Broadcast] Token value:', data.token);
         setToken(data.token);
         setStreamInfo(data.stream);
         setIsLoading(false);

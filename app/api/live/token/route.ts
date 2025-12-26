@@ -68,6 +68,9 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('[API Token] Generated token for', userId, 'as', role, 'in room', roomName);
+    console.log('[API Token] Token type:', typeof token);
+    console.log('[API Token] Token value:', token);
+    console.log('[API Token] Token length:', token?.length);
 
     return NextResponse.json({
       success: true,

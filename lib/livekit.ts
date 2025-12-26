@@ -60,7 +60,9 @@ export function generateBroadcasterToken(
     canPublishData: true,
   });
 
-  return at.toJwt();
+  const jwt = at.toJwt();
+  console.log('[LiveKit] Generated broadcaster token:', typeof jwt, jwt.substring(0, 50) + '...');
+  return jwt;
 }
 
 /**
