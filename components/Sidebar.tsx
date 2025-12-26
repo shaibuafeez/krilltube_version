@@ -189,6 +189,24 @@ export function Sidebar({ isOpen = true, onClose, isCollapsed = false, onToggleC
               </Link>
 
               <Link
+                href="/live/create"
+                onClick={onClose}
+                className={`inline-flex transition-all ${
+                  showText
+                    ? `px-4 py-2 rounded-[32px] justify-start items-center gap-2.5 self-stretch ${pathname === '/live/create' ? 'bg-red-600 outline outline-[3px] outline-offset-[-3px] outline-black' : 'bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 outline outline-[2px] outline-offset-[-2px] outline-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'}`
+                    : 'flex-col justify-center items-center gap-1 bg-red-600 hover:bg-red-700 rounded-lg px-2 py-2 outline outline-[2px] outline-offset-[-2px] outline-black'
+                }`}
+              >
+                <svg className="w-6 h-6 flex-shrink-0 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <circle cx="12" cy="12" r="3" />
+                  <path d="M16.24 7.76a6 6 0 010 8.49m2.12-10.61a9 9 0 010 12.73m-10.61-2.12a6 6 0 010-8.49m-2.12 10.61a9 9 0 010-12.73" strokeWidth="2" stroke="currentColor" fill="none"/>
+                </svg>
+                <div className={`text-white font-bold font-['Outfit'] ${showText ? 'text-base' : 'text-xs'}`}>
+                  {showText ? '🔴 Go Live' : 'Live'}
+                </div>
+              </Link>
+
+              <Link
                 href="#"
                 onClick={onClose}
                 className={`px-4 py-2 inline-flex ${showText ? 'justify-start items-center gap-2.5 self-stretch' : 'flex-col justify-center items-center gap-1'} hover:bg-white/50 transition-colors rounded-lg`}
