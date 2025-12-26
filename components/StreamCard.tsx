@@ -76,63 +76,86 @@ export function StreamCard({
     return (
       <Link
         href={`/live/watch/${roomName}`}
-        className="group block relative overflow-hidden rounded-[32px] bg-gradient-to-br from-[#EF4330] via-[#1AAACE] to-[#0668A6] aspect-[16/9] transition-transform hover:scale-[1.02]
-          shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
-          outline outline-[3px] outline-offset-[-3px] outline-black"
+        className="group block"
       >
-        {/* Animated gradient overlay for live streams */}
-        {status === 'live' && (
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
-        )}
+        <div className="w-full p-5 bg-white rounded-[32px]
+          shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
+          outline outline-[3px] outline-offset-[-3px] outline-black
+          hover:bg-[#FFEEE5] hover:shadow-[6px_6px_0_0_black]
+          hover:translate-x-[-1px] hover:translate-y-[-1px]
+          transition-all cursor-pointer">
 
-        {/* Content */}
-        <div className="relative h-full p-6 flex flex-col justify-between">
-          {/* Top badges */}
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              <span className={`px-3 py-1.5 ${badge.bgColor} ${badge.textColor} text-sm font-bold rounded-full
-                border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-                ${badge.pulse ? 'animate-pulse' : ''}`}>
-                {badge.icon} {badge.label}
-              </span>
-              {status === 'live' && (
-                <span className="px-3 py-1.5 bg-white/90 text-black text-sm font-semibold rounded-full
-                  border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                  👁️ {formattedViewers}
+          {/* Thumbnail Preview */}
+          <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden mb-4
+            shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
+            border-[2px] border-black
+            bg-gradient-to-br from-[#0668A6] to-[#1AAACE]">
+
+            {/* Animated shimmer for live streams */}
+            {status === 'live' && (
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-shimmer" />
+            )}
+
+            {/* Badges Row */}
+            <div className="absolute top-3 left-3 right-3 flex items-start justify-between z-10">
+              <div className="flex items-center gap-2">
+                <span className={`px-3 py-1.5 ${badge.bgColor} ${badge.textColor} text-sm font-bold rounded-full
+                  border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
+                  font-['Outfit'] ${badge.pulse ? 'animate-pulse' : ''}`}>
+                  {badge.icon} {badge.label}
                 </span>
-              )}
+                {status === 'live' && (
+                  <span className="px-3 py-1.5 bg-white text-black text-sm font-bold rounded-full
+                    border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] font-['Outfit']">
+                    👁️ {formattedViewers}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Play Button */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center
+                border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]
+                group-hover:bg-white group-hover:scale-110 transition-all">
+                <svg className="w-7 h-7 text-black ml-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
+                </svg>
+              </div>
             </div>
           </div>
 
-          {/* Title and creator info */}
-          <div>
-            <h3 className="text-2xl font-bold text-white mb-2 line-clamp-2 drop-shadow-lg">
-              {title}
-            </h3>
-            {description && (
-              <p className="text-sm text-white/80 mb-3 line-clamp-1">
-                {description}
-              </p>
-            )}
-            <div className="flex items-center gap-3 text-sm text-white/90">
-              <div className="flex items-center gap-2">
-                {/* Creator Avatar */}
-                <div className="w-6 h-6 rounded-full overflow-hidden flex-shrink-0 bg-white/20">
-                  {creatorAvatar ? (
-                    <img
-                      src={creatorAvatar}
-                      alt={creator}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-walrus-mint to-walrus-grape">
-                      <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                    </div>
-                  )}
+          {/* Stream Info */}
+          <div className="flex items-start gap-3">
+            {/* Creator Avatar */}
+            <div className="flex-shrink-0">
+              {creatorAvatar ? (
+                <img
+                  src={creatorAvatar}
+                  alt={creator}
+                  className="w-10 h-10 rounded-full object-cover border-2 border-black"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-walrus-mint to-walrus-grape
+                  flex items-center justify-center border-2 border-black">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 </div>
-                {/* Creator Name */}
+              )}
+            </div>
+
+            {/* Text Content */}
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xl font-bold text-black mb-1 line-clamp-2 font-['Outfit']">
+                {title}
+              </h3>
+              {description && (
+                <p className="text-sm text-black/70 mb-2 line-clamp-1 font-['Outfit']">
+                  {description}
+                </p>
+              )}
+              <div className="text-sm text-black/60 font-semibold font-['Outfit']">
                 {creatorAddress ? (
                   <span
                     onClick={(e) => {
@@ -140,27 +163,14 @@ export function StreamCard({
                       e.stopPropagation();
                       router.push(`/profile/${creatorAddress}`);
                     }}
-                    className="font-medium hover:underline cursor-pointer"
+                    className="hover:text-walrus-mint cursor-pointer transition-colors"
                   >
                     {creator}
                   </span>
                 ) : (
-                  <span className="font-medium">{creator}</span>
+                  creator
                 )}
               </div>
-            </div>
-          </div>
-
-          {/* Play/Watch button */}
-          <div className="absolute bottom-6 right-6">
-            <div className="w-12 h-12 bg-white/90 hover:bg-white rounded-full flex items-center justify-center transition-all group-hover:scale-110 shadow-xl border-2 border-black">
-              <svg
-                className="w-5 h-5 text-black ml-1"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
-              </svg>
             </div>
           </div>
         </div>
