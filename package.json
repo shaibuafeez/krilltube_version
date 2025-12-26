@@ -25,6 +25,7 @@
     "@iota/dapp-kit": "^0.7.0",
     "@iota/iota-sdk": "^1.7.1",
     "@livekit/components-react": "^2.9.17",
+    "@livekit/components-styles": "^1.2.0",
     "@mysten/dapp-kit": "^0.19.6",
     "@mysten/seal": "^0.9.6",
     "@mysten/sui.js": "^0.54.1",
