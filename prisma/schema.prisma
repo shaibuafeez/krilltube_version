@@ -379,27 +379,32 @@ model LiveStream {
   title           String
   description     String?
   creatorId       String   @map("creator_id")
-  
+
   // Stream status: "scheduled", "live", "ended"
   status          String   @default("scheduled")
-  
+
   // LiveKit room configuration
   maxParticipants Int      @default(100) @map("max_participants")
-  
+
   // Timestamps
   scheduledAt     DateTime? @map("scheduled_at")
   startedAt       DateTime? @map("started_at")
   endedAt         DateTime? @map("ended_at")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
-  
+
   // VOD after stream ends (linked to Video model)
   videoId         String?  @unique @map("video_id")
   video           Video?   @relation("LiveStreamToVideo", fields: [videoId], references: [id])
-  
-  // Track viewers
-  viewers         StreamViewer[] @relation("LiveStreamToViewers")
-  
+
+  // Relations
+  viewers         StreamViewer[]     @relation("LiveStreamToViewers")
+  chatMessages    ChatMessage[]      @relation("LiveStreamToChat")
+  donations       StreamDonation[]   @relation("LiveStreamToDonations")
+  moderators      StreamModerator[]  @relation("LiveStreamToModerators")
+  bans            StreamBan[]        @relation("LiveStreamToBans")
+  reactions       StreamReaction[]   @relation("LiveStreamToReactions")
+
   @@index([creatorId])
   @@index([status])
   @@index([scheduledAt])
@@ -413,11 +418,110 @@ model StreamViewer {
   viewerAddress String    @map("viewer_address")
   joinedAt      DateTime  @default(now()) @map("joined_at")
   leftAt        DateTime? @map("left_at")
-  
+
   stream        LiveStream @relation("LiveStreamToViewers", fields: [streamId], references: [id], onDelete: Cascade)
-  
+
   @@index([streamId])
   @@index([viewerAddress])
   @@index([joinedAt])
   @@map("stream_viewers")
+}
+
+// Chat messages during live streams
+model ChatMessage {
+  id            String    @id @default(cuid())
+  streamId      String    @map("stream_id")
+  userId        String    @map("user_id") // Wallet address or anonymous ID
+  userName      String    @map("user_name")
+  message       String
+
+  // Super Chat donation (if any)
+  donationAmount String?  @map("donation_amount") // Amount in SUI (smallest unit)
+  txDigest       String?  @map("tx_digest") // Transaction digest for donation
+
+  // Moderation
+  deleted        Boolean   @default(false)
+  deletedBy      String?   @map("deleted_by")
+  deletedAt      DateTime? @map("deleted_at")
+
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  stream         LiveStream @relation("LiveStreamToChat", fields: [streamId], references: [id], onDelete: Cascade)
+
+  @@index([streamId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([streamId, donationAmount]) // For Super Chat ordering
+  @@map("chat_messages")
+}
+
+// Donations/tips during streams
+model StreamDonation {
+  id              String     @id @default(cuid())
+  streamId        String     @map("stream_id")
+  donorAddress    String     @map("donor_address")
+  donorName       String?    @map("donor_name")
+  amount          String     // Amount in SUI (smallest unit)
+  message         String?    // Optional message
+  txDigest        String     @map("tx_digest")
+  createdAt       DateTime   @default(now()) @map("created_at")
+
+  stream          LiveStream @relation("LiveStreamToDonations", fields: [streamId], references: [id], onDelete: Cascade)
+
+  @@index([streamId])
+  @@index([donorAddress])
+  @@index([createdAt])
+  @@index([streamId, amount]) // For leaderboard
+  @@map("stream_donations")
+}
+
+// Moderators for streams
+model StreamModerator {
+  id              String     @id @default(cuid())
+  streamId        String     @map("stream_id")
+  moderatorAddress String    @map("moderator_address")
+  addedBy         String     @map("added_by") // Creator who added this mod
+  createdAt       DateTime   @default(now()) @map("created_at")
+
+  stream          LiveStream @relation("LiveStreamToModerators", fields: [streamId], references: [id], onDelete: Cascade)
+
+  @@unique([streamId, moderatorAddress])
+  @@index([streamId])
+  @@index([moderatorAddress])
+  @@map("stream_moderators")
+}
+
+// Banned users
+model StreamBan {
+  id              String     @id @default(cuid())
+  streamId        String     @map("stream_id")
+  bannedAddress   String     @map("banned_address")
+  bannedBy        String     @map("banned_by") // Mod or creator who banned
+  reason          String?
+  expiresAt       DateTime?  @map("expires_at") // Null = permanent
+  createdAt       DateTime   @default(now()) @map("created_at")
+
+  stream          LiveStream @relation("LiveStreamToBans", fields: [streamId], references: [id], onDelete: Cascade)
+
+  @@unique([streamId, bannedAddress])
+  @@index([streamId])
+  @@index([bannedAddress])
+  @@index([expiresAt])
+  @@map("stream_bans")
+}
+
+// Viewer reactions
+model StreamReaction {
+  id              String     @id @default(cuid())
+  streamId        String     @map("stream_id")
+  userId          String     @map("user_id")
+  emoji           String     // Emoji character (❤️, 🔥, etc.)
+  createdAt       DateTime   @default(now()) @map("created_at")
+
+  stream          LiveStream @relation("LiveStreamToReactions", fields: [streamId], references: [id], onDelete: Cascade)
+
+  @@index([streamId])
+  @@index([streamId, emoji]) // For reaction counters
+  @@index([createdAt])
+  @@map("stream_reactions")
 }

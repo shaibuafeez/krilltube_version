@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('Authorization');
 
     // Verify webhook signature
-    const event = receiver.receive(body, authHeader || '');
+    const event = await receiver.receive(body, authHeader || '');
 
     console.log('[Webhooks] Received event:', event.event, 'for room:', event.room?.name);
 
