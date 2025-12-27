@@ -7,6 +7,7 @@ import { LiveKitRoom } from '@livekit/components-react';
 import '@livekit/components-styles';
 import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
+import { Header } from '@/components/Header';
 
 export default function BroadcastPage() {
   const params = useParams();
@@ -108,8 +109,10 @@ export default function BroadcastPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0668A6] to-[#1AAACE] p-6">
-      <div className="max-w-7xl mx-auto">
+    <>
+      <Header showHamburgerOnly={true} />
+      <div className="min-h-screen bg-gradient-to-br from-[#0668A6] to-[#1AAACE] p-6 pt-24">
+        <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6 flex justify-between items-start">
           <div>
@@ -169,6 +172,7 @@ export default function BroadcastPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
