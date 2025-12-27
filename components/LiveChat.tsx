@@ -191,8 +191,8 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
       </div>
 
       {/* Message Input - TikTok Live Style */}
-      <div className="p-3">
-        <div className="flex gap-2">
+      <div className="p-2">
+        <div className="flex gap-1.5">
           <input
             type="text"
             value={inputMessage}
@@ -222,7 +222,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
             type="button"
             onClick={() => setIsDonationModalOpen(true)}
             disabled={!currentAccount?.address}
-            className="w-10 h-10 bg-gradient-to-r from-yellow-400/95 to-orange-500/95
+            className="w-10 h-10 flex-shrink-0 bg-gradient-to-r from-yellow-400/95 to-orange-500/95
               backdrop-blur-sm rounded-full
               flex items-center justify-center
               hover:from-yellow-400 hover:to-orange-500
@@ -238,7 +238,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
             type="button"
             onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isLoading || !currentAccount?.address}
-            className="px-6 py-2.5 bg-pink-500/90 backdrop-blur-sm rounded-full
+            className="px-4 py-2.5 flex-shrink-0 bg-pink-500/90 backdrop-blur-sm rounded-full
               text-white font-semibold font-['Outfit'] text-sm
               hover:bg-pink-500
               disabled:opacity-50 disabled:cursor-not-allowed
