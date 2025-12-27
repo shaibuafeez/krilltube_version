@@ -32,16 +32,18 @@ export default function LiveChatOverlay({
         {isChatVisible ? '💬 Hide Chat' : '💬 Show Chat'}
       </button>
 
-      {/* Chat Overlay */}
+      {/* Chat Overlay - TikTok Live Style */}
       {isChatVisible && (
-        <div className="absolute bottom-0 right-0 w-full sm:w-96 h-[500px] p-4
-          transition-all duration-300 ease-in-out">
-          <LiveChat
-            roomName={roomName}
-            streamId={streamId}
-            creatorAddress={creatorAddress}
-            isBroadcaster={isBroadcaster}
-          />
+        <div className="absolute bottom-4 left-4 w-[min(350px,calc(100%-2rem))] h-[calc(100%-8rem)]
+          transition-all duration-300 ease-in-out pointer-events-none">
+          <div className="h-full pointer-events-auto">
+            <LiveChat
+              roomName={roomName}
+              streamId={streamId}
+              creatorAddress={creatorAddress}
+              isBroadcaster={isBroadcaster}
+            />
+          </div>
         </div>
       )}
     </>
