@@ -130,7 +130,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
   };
 
   return (
-    <div className="h-full flex flex-col bg-white rounded-[32px]
+    <div className="h-full flex flex-col bg-white/95 backdrop-blur-md rounded-[32px]
       shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
       outline outline-[3px] outline-offset-[-3px] outline-black
       overflow-hidden">

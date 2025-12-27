@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { LiveKitRoom } from '@livekit/components-react';
 import '@livekit/components-styles';
-import LiveChat from '@/components/LiveChat';
+import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
 
 export default function WatchStreamPage() {
@@ -125,50 +125,43 @@ export default function WatchStreamPage() {
           </div>
         </div>
 
-        {/* Main Content Area - Video + Chat */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Live Stream Video - Viewer Mode */}
-          <div className="lg:col-span-2">
-            <div className="rounded-[32px] overflow-hidden
-              shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
-              outline outline-[3px] outline-offset-[-3px] outline-black
-              bg-black h-[calc(100vh-200px)]">
-              <LiveKitRoom
-                video={false}
-                audio={false}
-                token={token}
-                serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
-                data-lk-theme="default"
-                className="h-full"
-              >
-                <LiveStreamPlayer isBroadcaster={false} />
-              </LiveKitRoom>
-            </div>
+        {/* Live Stream Video with Overlay Chat */}
+        <div className="relative">
+          <div className="rounded-[32px] overflow-hidden
+            shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
+            outline outline-[3px] outline-offset-[-3px] outline-black
+            bg-black h-[calc(100vh-200px)]">
+            <LiveKitRoom
+              video={false}
+              audio={false}
+              token={token}
+              serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
+              data-lk-theme="default"
+              className="h-full"
+            >
+              <LiveStreamPlayer isBroadcaster={false} />
+            </LiveKitRoom>
 
-            {/* Viewer Info */}
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                <p className="text-white text-sm font-['Outfit']">
-                  💬 <strong>Chat with other viewers</strong> - Use the chat panel to interact with the community
-                </p>
-              </div>
-              <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-                <p className="text-white text-sm font-['Outfit']">
-                  🎉 <strong>Enjoying the stream?</strong> - Support the creator by subscribing or donating
-                </p>
-              </div>
-            </div>
+            {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
+            <LiveChatOverlay
+              roomName={roomName}
+              streamId={streamInfo?.id || ''}
+              creatorAddress={streamInfo?.creatorId || ''}
+              isBroadcaster={false}
+            />
           </div>
 
-          {/* Live Chat Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="h-[calc(100vh-200px)]">
-              <LiveChat
-                roomName={roomName}
-                streamId={streamInfo?.id || ''}
-                creatorAddress={streamInfo?.creatorId || ''}
-                isBroadcaster={false}
-              />
+          {/* Viewer Info */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+              <p className="text-white text-sm font-['Outfit']">
+                💬 <strong>Chat with other viewers</strong> - Use the chat overlay to interact with the community
+              </p>
+            </div>
+            <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+              <p className="text-white text-sm font-['Outfit']">
+                🎉 <strong>Enjoying the stream?</strong> - Support the creator by sending Super Chat donations
+              </p>
             </div>
           </div>
         </div>

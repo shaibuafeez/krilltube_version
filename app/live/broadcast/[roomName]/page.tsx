@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { LiveKitRoom } from '@livekit/components-react';
 import '@livekit/components-styles';
-import LiveChat from '@/components/LiveChat';
+import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
 
 export default function BroadcastPage() {
@@ -142,44 +142,37 @@ export default function BroadcastPage() {
           </button>
         </div>
 
-        {/* Main Content Area - Video + Chat */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Live Stream Video */}
-          <div className="lg:col-span-2">
-            <div className="rounded-[32px] overflow-hidden
-              shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
-              outline outline-[3px] outline-offset-[-3px] outline-black
-              bg-black h-[calc(100vh-200px)]">
-              <LiveKitRoom
-                video={true}
-                audio={true}
-                token={token}
-                serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
-                data-lk-theme="default"
-                className="h-full"
-              >
-                <LiveStreamPlayer isBroadcaster={true} />
-              </LiveKitRoom>
-            </div>
+        {/* Live Stream Video with Overlay Chat */}
+        <div className="relative">
+          <div className="rounded-[32px] overflow-hidden
+            shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
+            outline outline-[3px] outline-offset-[-3px] outline-black
+            bg-black h-[calc(100vh-200px)]">
+            <LiveKitRoom
+              video={true}
+              audio={true}
+              token={token}
+              serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
+              data-lk-theme="default"
+              className="h-full"
+            >
+              <LiveStreamPlayer isBroadcaster={true} />
+            </LiveKitRoom>
 
-            {/* Tips */}
-            <div className="mt-6 p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-              <p className="text-white text-sm font-['Outfit']">
-                💡 <strong>Tip:</strong> Make sure your camera and microphone are enabled. Your viewers can see and hear you now!
-              </p>
-            </div>
+            {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
+            <LiveChatOverlay
+              roomName={roomName}
+              streamId={streamInfo?.id || ''}
+              creatorAddress={streamInfo?.creatorId || ''}
+              isBroadcaster={true}
+            />
           </div>
 
-          {/* Live Chat Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="h-[calc(100vh-200px)]">
-              <LiveChat
-                roomName={roomName}
-                streamId={streamInfo?.id || ''}
-                creatorAddress={streamInfo?.creatorId || ''}
-                isBroadcaster={true}
-              />
-            </div>
+          {/* Tips */}
+          <div className="mt-6 p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+            <p className="text-white text-sm font-['Outfit']">
+              💡 <strong>Tip:</strong> Make sure your camera and microphone are enabled. Your viewers can see and hear you now!
+            </p>
           </div>
         </div>
       </div>
