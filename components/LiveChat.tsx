@@ -204,18 +204,18 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
             }
             disabled={!currentAccount?.address || isLoading}
             maxLength={500}
-            className="flex-1 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-full
-              text-black placeholder-black/50
+            className="flex-1 px-4 py-2.5 bg-gray-800/80 backdrop-blur-sm rounded-full
+              text-white placeholder-white/60
               outline-none text-sm font-medium font-['Outfit']
               disabled:opacity-50 disabled:cursor-not-allowed
-              focus:bg-white transition-colors"
+              focus:bg-gray-800/90 transition-colors"
           />
           <button
             type="submit"
             disabled={!inputMessage.trim() || isLoading || !currentAccount?.address}
-            className="px-5 py-2 bg-white/90 backdrop-blur-sm rounded-full
-              text-black font-semibold font-['Outfit'] text-sm
-              hover:bg-white
+            className="px-6 py-2.5 bg-pink-500/90 backdrop-blur-sm rounded-full
+              text-white font-semibold font-['Outfit'] text-sm
+              hover:bg-pink-500
               disabled:opacity-50 disabled:cursor-not-allowed
               transition-colors"
           >
@@ -227,13 +227,14 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
         <button
           onClick={() => setIsDonationModalOpen(true)}
           disabled={!currentAccount?.address}
-          className="w-full px-4 py-2 bg-gradient-to-r from-yellow-400/90 to-orange-500/90
+          className="w-full px-4 py-2.5 bg-gradient-to-r from-yellow-400/95 to-orange-500/95
             backdrop-blur-sm rounded-full text-black font-semibold font-['Outfit'] text-sm
             hover:from-yellow-400 hover:to-orange-500
             disabled:opacity-50 disabled:cursor-not-allowed
-            transition-all"
+            transition-all flex items-center justify-center gap-1.5"
         >
-          💰 Send Gift
+          <span>💰</span>
+          <span>Send Gift</span>
         </button>
       </div>
 
