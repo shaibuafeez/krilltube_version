@@ -5,7 +5,8 @@ import {
   useTracks,
   VideoTrack,
   AudioTrack,
-  TrackReferenceOrPlaceholder
+  TrackReferenceOrPlaceholder,
+  useParticipants
 } from '@livekit/components-react';
 import { Track, RemoteTrack, RemoteVideoTrack, RemoteAudioTrack } from 'livekit-client';
 
@@ -16,6 +17,12 @@ interface LiveStreamPlayerProps {
 export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProps) {
   const [broadcasterVideoTrack, setBroadcasterVideoTrack] = useState<TrackReferenceOrPlaceholder | null>(null);
   const [broadcasterAudioTrack, setBroadcasterAudioTrack] = useState<TrackReferenceOrPlaceholder | null>(null);
+
+  // Get all participants in the room
+  const participants = useParticipants();
+
+  // Calculate viewer count (total participants - 1 broadcaster)
+  const viewerCount = Math.max(0, participants.length - 1);
 
   // Get all video and audio tracks in the room
   const videoTracks = useTracks([Track.Source.Camera], {
@@ -82,12 +89,12 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
           </div>
         </div>
 
-        {/* Viewer count placeholder */}
+        {/* Viewer count */}
         <div className="absolute top-4 right-4">
           <div className="px-4 py-2 bg-black/70 rounded-full backdrop-blur-sm
             border-2 border-white">
             <p className="text-white text-sm font-bold font-['Outfit']">
-              👁️ Viewers: {videoTracks.length - 1}
+              👁️ Viewers: {viewerCount}
             </p>
           </div>
         </div>
