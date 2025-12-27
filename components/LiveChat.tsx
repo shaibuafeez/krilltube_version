@@ -129,17 +129,15 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
     // The Super Chat message will appear via polling
   };
 
-  // Generate avatar color from userId
+  // Generate avatar shade from userId (black and white)
   const getAvatarColor = (userId: string) => {
     const colors = [
-      'bg-gradient-to-br from-blue-400 to-blue-600',
-      'bg-gradient-to-br from-purple-400 to-purple-600',
-      'bg-gradient-to-br from-pink-400 to-pink-600',
-      'bg-gradient-to-br from-green-400 to-green-600',
-      'bg-gradient-to-br from-yellow-400 to-yellow-600',
-      'bg-gradient-to-br from-red-400 to-red-600',
-      'bg-gradient-to-br from-indigo-400 to-indigo-600',
-      'bg-gradient-to-br from-cyan-400 to-cyan-600',
+      'bg-gray-700',
+      'bg-gray-600',
+      'bg-gray-800',
+      'bg-gray-500',
+      'bg-black',
+      'bg-gray-900',
     ];
     const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return colors[hash % colors.length];
@@ -183,7 +181,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
 
               {/* Super Chat Message - Highlighted */}
               {msg.donationAmount && !msg.deleted ? (
-                <div className="flex-1 px-3 py-1.5
+                <div className="px-3 py-1.5
                   bg-gradient-to-r from-yellow-400/95 to-orange-500/95
                   backdrop-blur-sm rounded-2xl">
                   <div className="flex items-baseline gap-1.5">
@@ -201,7 +199,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
               ) : (
                 /* Regular Message - Compact */
                 !msg.deleted && (
-                  <div className="flex-1 px-3 py-1.5
+                  <div className="px-3 py-1.5
                     bg-black/60 backdrop-blur-sm rounded-2xl">
                     <p className="text-xs font-['Outfit']">
                       <span className="font-bold text-white">
