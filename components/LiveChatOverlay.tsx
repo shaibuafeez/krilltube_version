@@ -35,7 +35,7 @@ export default function LiveChatOverlay({
       {/* Chat Overlay - TikTok Live Style */}
       {isChatVisible && (
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute bottom-0 left-0 w-full sm:w-96 h-[70%] max-h-[600px] p-4 pointer-events-auto">
+          <div className="absolute bottom-0 left-0 w-full sm:w-[500px] h-[70%] max-h-[600px] p-4 pointer-events-auto">
             <LiveChat
               roomName={roomName}
               streamId={streamId}
