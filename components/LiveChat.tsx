@@ -191,8 +191,8 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
       </div>
 
       {/* Message Input - TikTok Live Style */}
-      <div className="p-3 space-y-2">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
+      <div className="p-3">
+        <div className="flex gap-2">
           <input
             type="text"
             value={inputMessage}
@@ -204,14 +204,39 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
             }
             disabled={!currentAccount?.address || isLoading}
             maxLength={500}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage(e as any);
+              }
+            }}
             className="flex-1 px-4 py-2.5 bg-gray-800/80 backdrop-blur-sm rounded-full
               text-white placeholder-white/60
               outline-none text-sm font-medium font-['Outfit']
               disabled:opacity-50 disabled:cursor-not-allowed
               focus:bg-gray-800/90 transition-colors"
           />
+
+          {/* Gift Icon Button */}
           <button
-            type="submit"
+            type="button"
+            onClick={() => setIsDonationModalOpen(true)}
+            disabled={!currentAccount?.address}
+            className="w-10 h-10 bg-gradient-to-r from-yellow-400/95 to-orange-500/95
+              backdrop-blur-sm rounded-full
+              flex items-center justify-center
+              hover:from-yellow-400 hover:to-orange-500
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition-all"
+            title="Send Gift"
+          >
+            <span className="text-lg">💰</span>
+          </button>
+
+          {/* Send Button */}
+          <button
+            type="button"
+            onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isLoading || !currentAccount?.address}
             className="px-6 py-2.5 bg-pink-500/90 backdrop-blur-sm rounded-full
               text-white font-semibold font-['Outfit'] text-sm
@@ -221,21 +246,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
           >
             {isLoading ? '...' : 'Send'}
           </button>
-        </form>
-
-        {/* Super Chat Button - Compact TikTok Style */}
-        <button
-          onClick={() => setIsDonationModalOpen(true)}
-          disabled={!currentAccount?.address}
-          className="w-full px-4 py-2.5 bg-gradient-to-r from-yellow-400/95 to-orange-500/95
-            backdrop-blur-sm rounded-full text-black font-semibold font-['Outfit'] text-sm
-            hover:from-yellow-400 hover:to-orange-500
-            disabled:opacity-50 disabled:cursor-not-allowed
-            transition-all flex items-center justify-center gap-1.5"
-        >
-          <span>💰</span>
-          <span>Send Gift</span>
-        </button>
+        </div>
       </div>
 
       {/* Donation Modal */}
