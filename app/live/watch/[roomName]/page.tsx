@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCurrentAccount } from '@mysten/dapp-kit';
-import { LiveKitRoom, VideoConference } from '@livekit/components-react';
+import { LiveKitRoom } from '@livekit/components-react';
 import '@livekit/components-styles';
 import LiveChat from '@/components/LiveChat';
+import LiveStreamPlayer from '@/components/LiveStreamPlayer';
 
 export default function WatchStreamPage() {
   const params = useParams();
@@ -126,21 +127,21 @@ export default function WatchStreamPage() {
 
         {/* Main Content Area - Video + Chat */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* LiveKit Video Conference - Viewer Mode */}
+          {/* Live Stream Video - Viewer Mode */}
           <div className="lg:col-span-2">
             <div className="rounded-[32px] overflow-hidden
               shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
               outline outline-[3px] outline-offset-[-3px] outline-black
-              bg-black">
+              bg-black h-[calc(100vh-200px)]">
               <LiveKitRoom
                 video={false}
                 audio={false}
                 token={token}
                 serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
                 data-lk-theme="default"
-                className="h-[calc(100vh-200px)]"
+                className="h-full"
               >
-                <VideoConference />
+                <LiveStreamPlayer isBroadcaster={false} />
               </LiveKitRoom>
             </div>
 
