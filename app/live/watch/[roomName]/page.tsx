@@ -150,20 +150,6 @@ export default function WatchStreamPage() {
               isBroadcaster={false}
             />
           </div>
-
-          {/* Viewer Info */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-              <p className="text-white text-sm font-['Outfit']">
-                💬 <strong>Chat with other viewers</strong> - Use the chat overlay to interact with the community
-              </p>
-            </div>
-            <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-              <p className="text-white text-sm font-['Outfit']">
-                🎉 <strong>Enjoying the stream?</strong> - Support the creator by sending Super Chat donations
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

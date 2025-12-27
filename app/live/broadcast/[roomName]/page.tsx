@@ -167,13 +167,6 @@ export default function BroadcastPage() {
               isBroadcaster={true}
             />
           </div>
-
-          {/* Tips */}
-          <div className="mt-6 p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
-            <p className="text-white text-sm font-['Outfit']">
-              💡 <strong>Tip:</strong> Make sure your camera and microphone are enabled. Your viewers can see and hear you now!
-            </p>
-          </div>
         </div>
       </div>
     </div>
