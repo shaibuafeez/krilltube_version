@@ -129,6 +129,27 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
     // The Super Chat message will appear via polling
   };
 
+  // Generate avatar color from userId
+  const getAvatarColor = (userId: string) => {
+    const colors = [
+      'bg-gradient-to-br from-blue-400 to-blue-600',
+      'bg-gradient-to-br from-purple-400 to-purple-600',
+      'bg-gradient-to-br from-pink-400 to-pink-600',
+      'bg-gradient-to-br from-green-400 to-green-600',
+      'bg-gradient-to-br from-yellow-400 to-yellow-600',
+      'bg-gradient-to-br from-red-400 to-red-600',
+      'bg-gradient-to-br from-indigo-400 to-indigo-600',
+      'bg-gradient-to-br from-cyan-400 to-cyan-600',
+    ];
+    const hash = userId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hash % colors.length];
+  };
+
+  // Get initials from userName
+  const getInitials = (userName: string) => {
+    return userName.charAt(0).toUpperCase();
+  };
+
   return (
     <div className="h-full flex flex-col gap-2">
 
@@ -149,11 +170,20 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
           messages.slice(-50).map((msg) => (
             <div
               key={msg.id}
-              className={`group ${msg.deleted ? 'opacity-40' : ''}`}
+              className={`flex items-start gap-2 ${msg.deleted ? 'opacity-40' : ''}`}
             >
+              {/* User Avatar */}
+              {!msg.deleted && (
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${getAvatarColor(msg.userId)} border-2 border-white/20`}>
+                  <span className="text-white text-xs font-bold font-['Outfit']">
+                    {getInitials(msg.userName)}
+                  </span>
+                </div>
+              )}
+
               {/* Super Chat Message - Highlighted */}
               {msg.donationAmount && !msg.deleted ? (
-                <div className="inline-block max-w-[85%] px-3 py-1.5
+                <div className="flex-1 px-3 py-1.5
                   bg-gradient-to-r from-yellow-400/95 to-orange-500/95
                   backdrop-blur-sm rounded-2xl">
                   <div className="flex items-baseline gap-1.5">
@@ -171,7 +201,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
               ) : (
                 /* Regular Message - Compact */
                 !msg.deleted && (
-                  <div className="inline-block max-w-[85%] px-3 py-1.5
+                  <div className="flex-1 px-3 py-1.5
                     bg-black/60 backdrop-blur-sm rounded-2xl">
                     <p className="text-xs font-['Outfit']">
                       <span className="font-bold text-white">
