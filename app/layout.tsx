@@ -23,12 +23,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Fredericka+the+Great&family=Nunito+Sans:wght@400;600;700&family=Outfit:wght@100..900&family=Aclonica&family=Satisfy&family=Montserrat:wght@400;500;600;700&family=Russo+One&family=Kalam:wght@300;400;700&family=Playfair+Display:wght@400;500;600;700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
       </head>
-      <body className={`${outfit.variable} antialiased`}>
+      <body className={`${outfit.variable} antialiased`} suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>
