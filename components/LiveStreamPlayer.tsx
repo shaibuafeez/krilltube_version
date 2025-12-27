@@ -80,11 +80,11 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
 
         {/* Broadcasting indicator */}
         <div className="absolute top-4 left-4">
-          <div className="px-4 py-2 bg-red-600 rounded-full
-            border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-            animate-pulse">
-            <p className="text-white text-sm font-bold font-['Outfit']">
-              🔴 YOU ARE LIVE
+          <div className="px-4 py-2 bg-red-600/90 rounded-full backdrop-blur-sm
+            flex items-center gap-2">
+            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+            <p className="text-white text-sm font-semibold font-['Outfit'] tracking-wide">
+              LIVE
             </p>
           </div>
         </div>
@@ -134,11 +134,11 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
 
       {/* Live indicator */}
       <div className="absolute top-4 left-4">
-        <div className="px-4 py-2 bg-red-600 rounded-full
-          border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]
-          animate-pulse">
-          <p className="text-white text-sm font-bold font-['Outfit']">
-            🔴 LIVE
+        <div className="px-4 py-2 bg-red-600/90 rounded-full backdrop-blur-sm
+          flex items-center gap-2">
+          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+          <p className="text-white text-sm font-semibold font-['Outfit'] tracking-wide">
+            LIVE
           </p>
         </div>
       </div>
