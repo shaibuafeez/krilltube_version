@@ -386,6 +386,11 @@ model LiveStream {
   // LiveKit room configuration
   maxParticipants Int      @default(100) @map("max_participants")
 
+  // NEW: Participation settings
+  allowParticipation Boolean @default(false) @map("allow_participation") // Enable raise hand/invite system
+  maxCoHosts         Int     @default(5) @map("max_co_hosts") // Max number of co-hosts allowed
+  requireApproval    Boolean @default(true) @map("require_approval") // Require approval for co-host requests
+
   // Timestamps
   scheduledAt     DateTime? @map("scheduled_at")
   startedAt       DateTime? @map("started_at")
@@ -398,12 +403,17 @@ model LiveStream {
   video           Video?   @relation("LiveStreamToVideo", fields: [videoId], references: [id])
 
   // Relations
-  viewers         StreamViewer[]     @relation("LiveStreamToViewers")
-  chatMessages    ChatMessage[]      @relation("LiveStreamToChat")
-  donations       StreamDonation[]   @relation("LiveStreamToDonations")
-  moderators      StreamModerator[]  @relation("LiveStreamToModerators")
-  bans            StreamBan[]        @relation("LiveStreamToBans")
-  reactions       StreamReaction[]   @relation("LiveStreamToReactions")
+  viewers         StreamViewer[]      @relation("LiveStreamToViewers")
+  chatMessages    ChatMessage[]       @relation("LiveStreamToChat")
+  donations       StreamDonation[]    @relation("LiveStreamToDonations")
+  moderators      StreamModerator[]   @relation("LiveStreamToModerators")
+  bans            StreamBan[]         @relation("LiveStreamToBans")
+  reactions       StreamReaction[]    @relation("LiveStreamToReactions")
+
+  // NEW: Advanced participation features
+  invitations     StreamInvitation[]  @relation("LiveStreamToInvitations")
+  joinRequests    StreamJoinRequest[] @relation("LiveStreamToJoinRequests")
+  participants    StreamParticipant[] @relation("LiveStreamToParticipants")
 
   @@index([creatorId])
   @@index([status])
@@ -524,4 +534,84 @@ model StreamReaction {
   @@index([streamId, emoji]) // For reaction counters
   @@index([createdAt])
   @@map("stream_reactions")
+}
+
+// ==============================================================================
+// ADVANCED PARTICIPATION FEATURES
+// ==============================================================================
+
+// Stream invitations (pre-stream or during stream)
+model StreamInvitation {
+  id          String    @id @default(cuid())
+  streamId    String    @map("stream_id")
+  stream      LiveStream @relation("LiveStreamToInvitations", fields: [streamId], references: [id], onDelete: Cascade)
+
+  inviterId   String    @map("inviter_id") // User who sent invitation (creator or co-host)
+  inviteeId   String    @map("invitee_id") // User who received invitation (wallet address)
+  inviteeName String    @map("invitee_name") // Display name
+
+  status      String    @default("pending") @map("status") // pending, accepted, rejected, expired
+
+  sentAt      DateTime  @default(now()) @map("sent_at")
+  respondedAt DateTime? @map("responded_at")
+
+  @@index([streamId])
+  @@index([inviteeId])
+  @@index([status])
+  @@unique([streamId, inviteeId]) // One invitation per user per stream
+  @@map("stream_invitations")
+}
+
+// Join requests (raise hand system)
+model StreamJoinRequest {
+  id            String    @id @default(cuid())
+  streamId      String    @map("stream_id")
+  stream        LiveStream @relation("LiveStreamToJoinRequests", fields: [streamId], references: [id], onDelete: Cascade)
+
+  requesterId   String    @map("requester_id") // User requesting to join
+  requesterName String    @map("requester_name") // Display name
+
+  status        String    @default("pending") @map("status") // pending, approved, rejected
+  message       String?   @map("message") // Optional message from requester
+
+  requestedAt   DateTime  @default(now()) @map("requested_at")
+  respondedAt   DateTime? @map("responded_at")
+  respondedBy   String?   @map("responded_by") // Admin/creator who approved/rejected
+
+  @@index([streamId])
+  @@index([requesterId])
+  @@index([status])
+  @@map("stream_join_requests")
+}
+
+// Active participants (tracks all users in stream with roles and permissions)
+model StreamParticipant {
+  id              String    @id @default(cuid())
+  streamId        String    @map("stream_id")
+  stream          LiveStream @relation("LiveStreamToParticipants", fields: [streamId], references: [id], onDelete: Cascade)
+
+  userId          String    @map("user_id") // Wallet address
+  userName        String    @map("user_name") // Display name
+
+  // Role: creator (broadcaster), co-host (invited participant), viewer
+  role            String    @default("viewer") @map("role")
+
+  // Permissions
+  canPublish      Boolean   @default(false) @map("can_publish") // Can publish audio/video
+  canPublishScreen Boolean   @default(false) @map("can_publish_screen") // Can share screen
+
+  // Metadata (synced with LiveKit)
+  handRaised      Boolean   @default(false) @map("hand_raised") // User raised hand
+  invitedToStage  Boolean   @default(false) @map("invited_to_stage") // User was invited
+  isScreenSharing Boolean   @default(false) @map("is_screen_sharing") // Currently sharing screen
+
+  // Timestamps
+  joinedAt        DateTime  @default(now()) @map("joined_at")
+  leftAt          DateTime? @map("left_at")
+
+  @@index([streamId])
+  @@index([userId])
+  @@index([role])
+  @@unique([streamId, userId]) // One participant record per user per stream
+  @@map("stream_participants")
 }
