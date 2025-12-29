@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       creatorId,
       scheduledAt,
       maxParticipants = 100,
-      allowParticipation = false,
+      allowParticipation = true,
       maxCoHosts = 5,
       requireApproval = true,
     } = body;
