@@ -10,6 +10,7 @@ import LiveStreamPlayer from '@/components/LiveStreamPlayer';
 import ViewerParticipation from '@/components/ViewerParticipation';
 import InvitationNotifications from '@/components/InvitationNotifications';
 import CoHostControls from '@/components/CoHostControls';
+import EmojiReactions from '@/components/EmojiReactions';
 import { Header } from '@/components/Header';
 
 export default function WatchStreamPage() {
@@ -237,6 +238,12 @@ export default function WatchStreamPage() {
 
             {/* Invitation Notifications - Inside video screen */}
             <InvitationNotifications />
+
+            {/* Emoji Reactions - Floating animations */}
+            <EmojiReactions
+              streamId={streamInfo?.id || ''}
+              roomName={roomName}
+            />
           </div>
         </div>
       </div>
