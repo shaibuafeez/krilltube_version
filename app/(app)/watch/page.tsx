@@ -310,23 +310,22 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Horizontal scrollable grid */}
-          <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+          {/* Fixed grid layout - no horizontal scroll */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {liveStreams.map((stream) => (
-              <div key={stream.id} className="flex-shrink-0 w-[500px]">
-                <StreamCard
-                  id={stream.id}
-                  roomName={stream.roomName}
-                  title={stream.title}
-                  description={stream.description}
-                  creator={stream.creatorId.slice(0, 8)}
-                  creatorAddress={stream.creatorId}
-                  status="live"
-                  viewerCount={stream.viewerCount}
-                  startedAt={stream.startedAt}
-                  variant="featured"
-                />
-              </div>
+              <StreamCard
+                key={stream.id}
+                id={stream.id}
+                roomName={stream.roomName}
+                title={stream.title}
+                description={stream.description}
+                creator={stream.creatorId.slice(0, 8)}
+                creatorAddress={stream.creatorId}
+                status="live"
+                viewerCount={stream.viewerCount}
+                startedAt={stream.startedAt}
+                variant="featured"
+              />
             ))}
           </div>
         </div>
