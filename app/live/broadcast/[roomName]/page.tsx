@@ -10,6 +10,7 @@ import LiveStreamPlayer from '@/components/LiveStreamPlayer';
 import ParticipantManagementPanel from '@/components/ParticipantManagementPanel';
 import InvitationNotifications from '@/components/InvitationNotifications';
 import CoHostControls from '@/components/CoHostControls';
+import EmojiReactions from '@/components/EmojiReactions';
 import { Header } from '@/components/Header';
 
 export default function BroadcastPage() {
@@ -184,6 +185,12 @@ export default function BroadcastPage() {
 
             {/* Invitation Notifications - Inside video screen */}
             <InvitationNotifications />
+
+            {/* Emoji Reactions - Floating animations */}
+            <EmojiReactions
+              streamId={streamInfo?.id || ''}
+              roomName={roomName}
+            />
           </div>
 
           {/* Participant Management Panel - Host controls (outside overflow-hidden) */}
