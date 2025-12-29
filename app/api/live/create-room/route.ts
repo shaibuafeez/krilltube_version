@@ -14,7 +14,16 @@ import { createLivekitRoom, generateBroadcasterToken } from '@/lib/livekit';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { title, description, creatorId, scheduledAt, maxParticipants = 100 } = body;
+    const {
+      title,
+      description,
+      creatorId,
+      scheduledAt,
+      maxParticipants = 100,
+      allowParticipation = false,
+      maxCoHosts = 5,
+      requireApproval = true,
+    } = body;
 
     // Validate required fields
     if (!title || !creatorId) {
@@ -40,7 +49,22 @@ export async function POST(request: NextRequest) {
         creatorId,
         status: 'scheduled',
         maxParticipants,
+        allowParticipation,
+        maxCoHosts,
+        requireApproval,
         scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
+      },
+    });
+
+    // Create creator as first participant
+    await prisma.streamParticipant.create({
+      data: {
+        streamId: liveStream.id,
+        userId: creatorId,
+        userName: `Creator-${creatorId.slice(0, 6)}`,
+        role: 'creator',
+        canPublish: true,
+        canPublishScreen: true,
       },
     });
 
