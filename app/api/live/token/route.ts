@@ -54,6 +54,36 @@ export async function POST(request: NextRequest) {
           },
         });
       }
+    } else if (role === 'co-host') {
+      // Co-hosts get broadcaster token (can publish video/audio)
+      token = await generateBroadcasterToken(roomName, userId, userName || `CoHost-${userId.slice(0, 8)}`);
+
+      console.log('[API Token] Generated co-host token for', userId);
+
+      // Create/update participant record for co-host
+      await prisma.streamParticipant.upsert({
+        where: {
+          streamId_userId: {
+            streamId: liveStream.id,
+            userId: userId,
+          },
+        },
+        create: {
+          streamId: liveStream.id,
+          userId: userId,
+          userName: userName || `CoHost-${userId.slice(0, 8)}`,
+          role: 'co-host',
+          canPublish: true,
+          canPublishScreen: true,
+        },
+        update: {
+          userName: userName || `CoHost-${userId.slice(0, 8)}`,
+          role: 'co-host',
+          canPublish: true,
+          canPublishScreen: true,
+          leftAt: null,
+        },
+      });
     } else {
       // Viewers get viewer token
       token = await generateViewerToken(roomName, userId, userName || `Viewer-${userId.slice(0, 8)}`);
@@ -63,6 +93,28 @@ export async function POST(request: NextRequest) {
         data: {
           streamId: liveStream.id,
           viewerAddress: userId,
+        },
+      });
+
+      // Create/update participant record for viewer
+      await prisma.streamParticipant.upsert({
+        where: {
+          streamId_userId: {
+            streamId: liveStream.id,
+            userId: userId,
+          },
+        },
+        create: {
+          streamId: liveStream.id,
+          userId: userId,
+          userName: userName || `Viewer-${userId.slice(0, 8)}`,
+          role: 'viewer',
+          canPublish: false,
+          canPublishScreen: false,
+        },
+        update: {
+          userName: userName || `Viewer-${userId.slice(0, 8)}`,
+          leftAt: null, // Mark as active again if rejoining
         },
       });
     }
@@ -82,6 +134,9 @@ export async function POST(request: NextRequest) {
         description: liveStream.description,
         status: liveStream.status,
         creatorId: liveStream.creatorId,
+        allowParticipation: liveStream.allowParticipation,
+        maxCoHosts: liveStream.maxCoHosts,
+        requireApproval: liveStream.requireApproval,
       },
     });
   } catch (error) {
