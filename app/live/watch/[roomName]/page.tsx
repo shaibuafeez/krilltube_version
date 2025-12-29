@@ -7,6 +7,9 @@ import { LiveKitRoom } from '@livekit/components-react';
 import '@livekit/components-styles';
 import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
+import ViewerParticipation from '@/components/ViewerParticipation';
+import InvitationNotifications from '@/components/InvitationNotifications';
+import CoHostControls from '@/components/CoHostControls';
 import { Header } from '@/components/Header';
 
 export default function WatchStreamPage() {
@@ -19,6 +22,8 @@ export default function WatchStreamPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [streamInfo, setStreamInfo] = useState<any>(null);
+  const [userRole, setUserRole] = useState<'viewer' | 'co-host'>('viewer');
+  const [isRefreshingToken, setIsRefreshingToken] = useState(false);
 
   useEffect(() => {
     if (!currentAccount?.address || !roomName) {
@@ -31,15 +36,16 @@ export default function WatchStreamPage() {
     fetchToken(currentAccount.address);
   }, [currentAccount?.address, roomName]);
 
-  const fetchToken = async (userId: string) => {
+  const fetchToken = async (userId: string, role: 'viewer' | 'co-host' = 'viewer') => {
     try {
+      console.log('[Watch] Fetching token for', userId, 'as', role);
       const response = await fetch('/api/live/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           roomName,
           userId,
-          role: 'viewer',
+          role,
           userName: currentAccount?.address
             ? `User-${currentAccount.address.slice(0, 8)}`
             : `Anonymous-${userId.slice(0, 8)}`,
@@ -53,13 +59,56 @@ export default function WatchStreamPage() {
       const data = await response.json();
       setToken(data.token);
       setStreamInfo(data.stream);
+      setUserRole(role);
       setIsLoading(false);
+      console.log('[Watch] Token fetched successfully, role:', role);
     } catch (err: any) {
       console.error('[Watch] Error fetching token:', err);
       setError(err.message || 'Failed to join stream');
       setIsLoading(false);
     }
   };
+
+  // Poll for role changes - detect when user is promoted to co-host
+  useEffect(() => {
+    if (!currentAccount?.address || !streamInfo?.id) {
+      return;
+    }
+
+    const checkRoleChange = async () => {
+      try {
+        const response = await fetch(
+          `/api/live/participants?streamId=${streamInfo.id}&userId=${currentAccount.address}`
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const participant = data.participants?.[0];
+
+          if (participant && participant.role === 'co-host' && userRole === 'viewer') {
+            console.log('[Watch] User promoted to co-host! Refreshing token...');
+            setIsRefreshingToken(true);
+
+            // Fetch new token with co-host permissions
+            await fetchToken(currentAccount.address, 'co-host');
+
+            setIsRefreshingToken(false);
+            console.log('[Watch] Token refreshed successfully as co-host');
+          }
+        }
+      } catch (err) {
+        console.error('[Watch] Error checking role:', err);
+      }
+    };
+
+    // Check immediately
+    checkRoleChange();
+
+    // Then poll every 3 seconds
+    const interval = setInterval(checkRoleChange, 3000);
+
+    return () => clearInterval(interval);
+  }, [currentAccount?.address, streamInfo?.id, userRole]);
 
   if (isLoading) {
     return (
@@ -134,15 +183,40 @@ export default function WatchStreamPage() {
             shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
             outline outline-[3px] outline-offset-[-3px] outline-black
             bg-black h-[calc(100vh-200px)]">
+
+            {/* Token refresh loading overlay */}
+            {isRefreshingToken && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                <div className="text-center">
+                  <div className="inline-block w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-3" />
+                  <p className="text-white text-lg font-bold font-['Outfit']">
+                    Upgrading to Co-Host...
+                  </p>
+                  <p className="text-white/80 text-sm font-['Outfit']">
+                    Reconnecting with new permissions
+                  </p>
+                </div>
+              </div>
+            )}
+
             <LiveKitRoom
-              video={false}
-              audio={false}
+              key={token} // Force remount when token changes (co-host upgrade)
+              video={userRole === 'co-host'} // Enable camera for co-hosts
+              audio={userRole === 'co-host'} // Enable mic for co-hosts
               token={token}
               serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
               data-lk-theme="default"
               className="h-full"
             >
-              <LiveStreamPlayer isBroadcaster={false} />
+              <LiveStreamPlayer isBroadcaster={userRole === 'co-host'} />
+
+              {/* Co-host controls - Show when promoted */}
+              {userRole === 'co-host' && currentAccount?.address && (
+                <CoHostControls
+                  streamId={streamInfo?.id || ''}
+                  userId={currentAccount.address}
+                />
+              )}
             </LiveKitRoom>
 
             {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
@@ -152,6 +226,17 @@ export default function WatchStreamPage() {
               creatorAddress={streamInfo?.creatorId || ''}
               isBroadcaster={false}
             />
+
+            {/* Viewer Participation - Request to Join Stream */}
+            <ViewerParticipation
+              streamId={streamInfo?.id || ''}
+              roomName={roomName}
+              allowParticipation={streamInfo?.allowParticipation || false}
+              isBroadcaster={false}
+            />
+
+            {/* Invitation Notifications - Inside video screen */}
+            <InvitationNotifications />
           </div>
         </div>
       </div>
