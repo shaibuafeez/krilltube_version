@@ -7,6 +7,9 @@ import { LiveKitRoom } from '@livekit/components-react';
 import '@livekit/components-styles';
 import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
+import ParticipantManagementPanel from '@/components/ParticipantManagementPanel';
+import InvitationNotifications from '@/components/InvitationNotifications';
+import CoHostControls from '@/components/CoHostControls';
 import { Header } from '@/components/Header';
 
 export default function BroadcastPage() {
@@ -160,6 +163,15 @@ export default function BroadcastPage() {
               className="h-full"
             >
               <LiveStreamPlayer isBroadcaster={true} />
+
+              {/* Co-host Controls - Bottom right (includes invite button) */}
+              {currentAccount?.address && (
+                <CoHostControls
+                  streamId={streamInfo?.id || ''}
+                  userId={currentAccount.address}
+                  isBroadcaster={true}
+                />
+              )}
             </LiveKitRoom>
 
             {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
@@ -169,7 +181,17 @@ export default function BroadcastPage() {
               creatorAddress={streamInfo?.creatorId || ''}
               isBroadcaster={true}
             />
+
+            {/* Invitation Notifications - Inside video screen */}
+            <InvitationNotifications />
           </div>
+
+          {/* Participant Management Panel - Host controls (outside overflow-hidden) */}
+          <ParticipantManagementPanel
+            streamId={streamInfo?.id || ''}
+            creatorId={streamInfo?.creatorId || ''}
+            isBroadcaster={true}
+          />
         </div>
       </div>
       </div>
