@@ -114,7 +114,17 @@ export default function BroadcastPage() {
 
   return (
     <>
-      <Header showHamburgerOnly={true} />
+      <Header
+        showHamburgerOnly={true}
+        showParticipantManagement={true}
+        participantManagementPanel={
+          <ParticipantManagementPanel
+            streamId={streamInfo?.id || ''}
+            creatorId={streamInfo?.creatorId || ''}
+            isBroadcaster={true}
+          />
+        }
+      />
       <div className="min-h-screen bg-gradient-to-br from-[#0668A6] to-[#1AAACE] p-6 pt-24">
         <div className="max-w-7xl mx-auto">
         {/* Header */}
@@ -196,13 +206,6 @@ export default function BroadcastPage() {
               />
             </div>
           </div>
-
-          {/* Participant Management Panel - Host controls (outside overflow-hidden) */}
-          <ParticipantManagementPanel
-            streamId={streamInfo?.id || ''}
-            creatorId={streamInfo?.creatorId || ''}
-            isBroadcaster={true}
-          />
         </div>
       </div>
       </div>
