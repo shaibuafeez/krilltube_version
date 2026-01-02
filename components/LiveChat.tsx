@@ -316,10 +316,10 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
               type="button"
               onClick={() => setIsDonationModalOpen(true)}
               disabled={!currentAccount?.address}
-              className="w-10 h-10 flex-shrink-0 bg-white/90
+              className="w-10 h-10 flex-shrink-0 bg-white/50
                 backdrop-blur-sm rounded-full
                 flex items-center justify-center
-                hover:bg-white
+                hover:bg-white/70
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-all"
               title="Send Gift"
@@ -349,7 +349,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
             type="button"
             onClick={() => setShowEmojiPanel(!showEmojiPanel)}
             disabled={!currentAccount?.address}
-            className="w-10 h-10 flex-shrink-0 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="w-10 h-10 flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             title="React with emoji"
           >
             <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
