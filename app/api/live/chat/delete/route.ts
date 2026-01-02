@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+// Force dynamic rendering (prevents static generation during build)
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // POST - Delete a chat message (moderator/broadcaster only)
 export async function POST(request: NextRequest) {
   try {

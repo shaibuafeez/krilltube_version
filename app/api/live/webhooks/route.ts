@@ -12,6 +12,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { WebhookReceiver } from 'livekit-server-sdk';
 import { prisma } from '@/lib/db';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 const receiver = new WebhookReceiver(
   process.env.LIVEKIT_API_KEY || 'devkey',
   process.env.LIVEKIT_API_SECRET || 'secret'
