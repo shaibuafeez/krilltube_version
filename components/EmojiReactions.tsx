@@ -40,7 +40,7 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
 
           // Remove reactions after animation completes (3 seconds)
           setTimeout(() => {
-            setReactions(prev => prev.filter(r => !newReactions.find(nr => nr.id === r.id)));
+            setReactions(prev => prev.filter(r => !newReactions.find((nr: Reaction) => nr.id === r.id)));
           }, 3000);
         }
       } catch (err) {

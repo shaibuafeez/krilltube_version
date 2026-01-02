@@ -47,7 +47,6 @@ export default function ScreenShareButton({ streamId, userId }: ScreenShareButto
         await room.localParticipant.setScreenShareEnabled(true, {
           audio: true, // Include system audio if available
           resolution: { width: 1920, height: 1080 },
-          frameRate: 30,
         });
 
         // Update database

@@ -43,6 +43,7 @@
     "lib/move/iota/_dependencies/**/*",
     "lib/move/iota/tunnel/**/*",
     "scripts/**/*",
-    "tests/**/*"
+    "tests/**/*",
+    "livestream/**/*"
   ]
 }

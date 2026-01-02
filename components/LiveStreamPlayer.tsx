@@ -143,8 +143,8 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
         {thumbnailTracks.length > 0 && (
           <div className="absolute top-20 right-4 flex flex-col gap-3 max-h-[calc(100vh-200px)] overflow-y-auto">
             {thumbnailTracks.map((track, index) => {
-              const isPinned = pinnedParticipantId === track.participant.identity;
-              const isActiveSpeaker = activeSpeakerId === track.participant.identity;
+              const isPinned = pinnedParticipantId === track?.participant.identity;
+              const isActiveSpeaker = activeSpeakerId === track?.participant.identity;
 
               return track && track.publication && (
                 <div
