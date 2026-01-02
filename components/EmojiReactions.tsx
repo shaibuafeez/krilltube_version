@@ -124,25 +124,13 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
         {showPanel ? (
           // Emoji Selection Panel
           <div className="flex flex-col gap-2">
-            <div className="grid grid-cols-4 gap-2 p-3 bg-white rounded-[24px]
-              shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
-              outline outline-2 outline-offset-[-2px] outline-black">
+            <div className="grid grid-cols-4 gap-2 p-3 bg-white rounded-[24px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black">
               {EMOJI_OPTIONS.map((emoji) => (
                 <button
                   key={emoji}
                   onClick={() => sendReaction(emoji)}
                   disabled={isSending}
-                  className="w-12 h-12 rounded-full
-                    bg-[#FFEEE5]
-                    shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
-                    outline outline-1 outline-offset-[-1px] outline-black
-                    hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1.00)]
-                    hover:translate-x-[1px]
-                    hover:translate-y-[1px]
-                    hover:scale-110
-                    disabled:opacity-50
-                    transition-all
-                    flex items-center justify-center text-2xl">
+                  className="w-12 h-12 rounded-full bg-[#FFEEE5] shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] outline outline-1 outline-offset-[-1px] outline-black hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] hover:scale-110 disabled:opacity-50 transition-all flex items-center justify-center text-2xl">
                   {emoji}
                 </button>
               ))}
@@ -151,15 +139,7 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
             {/* Close Button */}
             <button
               onClick={() => setShowPanel(false)}
-              className="w-12 h-12 mx-auto rounded-full
-                bg-white
-                shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
-                outline outline-2 outline-offset-[-2px] outline-black
-                hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
-                hover:translate-x-[1px]
-                hover:translate-y-[1px]
-                transition-all
-                flex items-center justify-center">
+              className="w-12 h-12 mx-auto rounded-full bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center">
               <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -169,16 +149,7 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
           // Emoji Button
           <button
             onClick={() => setShowPanel(true)}
-            className="w-14 h-14 rounded-full
-              bg-gradient-to-br from-[#F9D546] to-[#F946AC]
-              shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
-              outline outline-2 outline-offset-[-2px] outline-black
-              hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
-              hover:translate-x-[1px]
-              hover:translate-y-[1px]
-              hover:scale-105
-              transition-all
-              flex items-center justify-center text-2xl">
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-[#F9D546] to-[#F946AC] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] hover:scale-105 transition-all flex items-center justify-center text-2xl">
             😊
           </button>
         )}
