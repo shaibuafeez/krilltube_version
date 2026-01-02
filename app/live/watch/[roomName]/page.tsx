@@ -185,65 +185,68 @@ export default function WatchStreamPage() {
             outline outline-[3px] outline-offset-[-3px] outline-black
             bg-black h-[calc(100vh-200px)]">
 
-            {/* Token refresh loading overlay */}
-            {isRefreshingToken && (
-              <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-                <div className="text-center">
-                  <div className="inline-block w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-3" />
-                  <p className="text-white text-lg font-bold font-['Outfit']">
-                    Upgrading to Co-Host...
-                  </p>
-                  <p className="text-white/80 text-sm font-['Outfit']">
-                    Reconnecting with new permissions
-                  </p>
+            {/* Inner container to keep all absolute elements inside */}
+            <div className="relative w-full h-full">
+              {/* Token refresh loading overlay */}
+              {isRefreshingToken && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                  <div className="text-center">
+                    <div className="inline-block w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin mb-3" />
+                    <p className="text-white text-lg font-bold font-['Outfit']">
+                      Upgrading to Co-Host...
+                    </p>
+                    <p className="text-white/80 text-sm font-['Outfit']">
+                      Reconnecting with new permissions
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-
-            <LiveKitRoom
-              key={token} // Force remount when token changes (co-host upgrade)
-              video={userRole === 'co-host'} // Enable camera for co-hosts
-              audio={userRole === 'co-host'} // Enable mic for co-hosts
-              token={token}
-              serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
-              data-lk-theme="default"
-              className="h-full"
-            >
-              <LiveStreamPlayer isBroadcaster={userRole === 'co-host'} />
-
-              {/* Co-host controls - Show when promoted */}
-              {userRole === 'co-host' && currentAccount?.address && (
-                <CoHostControls
-                  streamId={streamInfo?.id || ''}
-                  userId={currentAccount.address}
-                />
               )}
-            </LiveKitRoom>
 
-            {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
-            <LiveChatOverlay
-              roomName={roomName}
-              streamId={streamInfo?.id || ''}
-              creatorAddress={streamInfo?.creatorId || ''}
-              isBroadcaster={false}
-            />
+              <LiveKitRoom
+                key={token} // Force remount when token changes (co-host upgrade)
+                video={userRole === 'co-host'} // Enable camera for co-hosts
+                audio={userRole === 'co-host'} // Enable mic for co-hosts
+                token={token}
+                serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
+                data-lk-theme="default"
+                className="h-full"
+              >
+                <LiveStreamPlayer isBroadcaster={userRole === 'co-host'} />
 
-            {/* Viewer Participation - Request to Join Stream */}
-            <ViewerParticipation
-              streamId={streamInfo?.id || ''}
-              roomName={roomName}
-              allowParticipation={streamInfo?.allowParticipation || false}
-              isBroadcaster={false}
-            />
+                {/* Co-host controls - Show when promoted */}
+                {userRole === 'co-host' && currentAccount?.address && (
+                  <CoHostControls
+                    streamId={streamInfo?.id || ''}
+                    userId={currentAccount.address}
+                  />
+                )}
+              </LiveKitRoom>
 
-            {/* Invitation Notifications - Inside video screen */}
-            <InvitationNotifications />
+              {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
+              <LiveChatOverlay
+                roomName={roomName}
+                streamId={streamInfo?.id || ''}
+                creatorAddress={streamInfo?.creatorId || ''}
+                isBroadcaster={false}
+              />
 
-            {/* Emoji Reactions - Floating animations */}
-            <EmojiReactions
-              streamId={streamInfo?.id || ''}
-              roomName={roomName}
-            />
+              {/* Viewer Participation - Request to Join Stream */}
+              <ViewerParticipation
+                streamId={streamInfo?.id || ''}
+                roomName={roomName}
+                allowParticipation={streamInfo?.allowParticipation || false}
+                isBroadcaster={false}
+              />
+
+              {/* Invitation Notifications - Inside video screen */}
+              <InvitationNotifications />
+
+              {/* Emoji Reactions - Floating animations */}
+              <EmojiReactions
+                streamId={streamInfo?.id || ''}
+                roomName={roomName}
+              />
+            </div>
           </div>
         </div>
       </div>

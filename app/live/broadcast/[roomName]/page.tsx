@@ -155,42 +155,46 @@ export default function BroadcastPage() {
             shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
             outline outline-[3px] outline-offset-[-3px] outline-black
             bg-black h-[calc(100vh-200px)]">
-            <LiveKitRoom
-              video={true}
-              audio={true}
-              token={token}
-              serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
-              data-lk-theme="default"
-              className="h-full"
-            >
-              <LiveStreamPlayer isBroadcaster={true} />
 
-              {/* Co-host Controls - Bottom right (includes invite button) */}
-              {currentAccount?.address && (
-                <CoHostControls
-                  streamId={streamInfo?.id || ''}
-                  userId={currentAccount.address}
-                  isBroadcaster={true}
-                />
-              )}
-            </LiveKitRoom>
+            {/* Inner container to keep all absolute elements inside */}
+            <div className="relative w-full h-full">
+              <LiveKitRoom
+                video={true}
+                audio={true}
+                token={token}
+                serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL}
+                data-lk-theme="default"
+                className="h-full"
+              >
+                <LiveStreamPlayer isBroadcaster={true} />
 
-            {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
-            <LiveChatOverlay
-              roomName={roomName}
-              streamId={streamInfo?.id || ''}
-              creatorAddress={streamInfo?.creatorId || ''}
-              isBroadcaster={true}
-            />
+                {/* Co-host Controls - Bottom right (includes invite button) */}
+                {currentAccount?.address && (
+                  <CoHostControls
+                    streamId={streamInfo?.id || ''}
+                    userId={currentAccount.address}
+                    isBroadcaster={true}
+                  />
+                )}
+              </LiveKitRoom>
 
-            {/* Invitation Notifications - Inside video screen */}
-            <InvitationNotifications />
+              {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
+              <LiveChatOverlay
+                roomName={roomName}
+                streamId={streamInfo?.id || ''}
+                creatorAddress={streamInfo?.creatorId || ''}
+                isBroadcaster={true}
+              />
 
-            {/* Emoji Reactions - Floating animations */}
-            <EmojiReactions
-              streamId={streamInfo?.id || ''}
-              roomName={roomName}
-            />
+              {/* Invitation Notifications - Inside video screen */}
+              <InvitationNotifications />
+
+              {/* Emoji Reactions - Floating animations */}
+              <EmojiReactions
+                streamId={streamInfo?.id || ''}
+                roomName={roomName}
+              />
+            </div>
           </div>
 
           {/* Participant Management Panel - Host controls (outside overflow-hidden) */}

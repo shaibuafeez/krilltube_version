@@ -95,7 +95,7 @@ export default function CoHostControls({ streamId, userId, isBroadcaster = false
   };
 
   return (
-    <div className="absolute bottom-4 right-4 pointer-events-auto z-10 flex flex-col gap-2">
+    <div className="absolute bottom-6 right-6 pointer-events-auto z-10 flex flex-col gap-2 max-h-[calc(100%-3rem)] overflow-y-auto">
       {/* Main Controls - Always Visible */}
       <button
         onClick={toggleCamera}

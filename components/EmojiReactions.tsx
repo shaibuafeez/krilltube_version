@@ -120,10 +120,10 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
       </div>
 
       {/* Reaction Button - Bottom left */}
-      <div className="absolute bottom-4 left-4 pointer-events-auto z-30">
+      <div className="absolute bottom-6 left-6 pointer-events-auto z-30">
         {showPanel ? (
           // Emoji Selection Panel
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 items-end">
             <div className="grid grid-cols-4 gap-2 p-3 bg-white rounded-[24px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black">
               {EMOJI_OPTIONS.map((emoji) => (
                 <button
@@ -139,18 +139,21 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
             {/* Close Button */}
             <button
               onClick={() => setShowPanel(false)}
-              className="w-12 h-12 mx-auto rounded-full bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all flex items-center justify-center">
+              className="w-12 h-12 rounded-full bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] opacity-80 hover:opacity-100 transition-all flex items-center justify-center">
               <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
         ) : (
-          // Emoji Button
+          // Emoji Button - White minimalistic style
           <button
             onClick={() => setShowPanel(true)}
-            className="w-14 h-14 rounded-full bg-gradient-to-br from-[#F9D546] to-[#F946AC] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] hover:scale-105 transition-all flex items-center justify-center text-2xl">
-            😊
+            title="React with emoji"
+            className="w-12 h-12 rounded-full bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[#FFEEE5] opacity-80 hover:opacity-100 transition-all flex items-center justify-center">
+            <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </button>
         )}
       </div>
