@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCurrentAccount } from '@mysten/dapp-kit';
 import { LiveKitRoom } from '@livekit/components-react';
-import '@livekit/components-styles';
 import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
 import ParticipantManagementPanel from '@/components/ParticipantManagementPanel';
