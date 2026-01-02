@@ -17,6 +17,7 @@ interface EmojiReactionsProps {
 
 export default function EmojiReactions({ streamId, roomName }: EmojiReactionsProps) {
   const [reactions, setReactions] = useState<Reaction[]>([]);
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
 
   // Poll for new reactions every second
   useEffect(() => {
@@ -27,8 +28,13 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
         if (response.ok) {
           const data = await response.json();
 
+          // Filter out reactions we've already seen
+          const unseenReactions = data.reactions.filter((r: any) => !seenIds.has(r.id));
+
+          if (unseenReactions.length === 0) return;
+
           // Add new reactions with random positions
-          const newReactions = data.reactions.map((reaction: any) => ({
+          const newReactions = unseenReactions.map((reaction: any) => ({
             id: reaction.id,
             emoji: reaction.emoji,
             x: Math.random() * 80 + 10, // Random x position (10-90%)
@@ -36,12 +42,28 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
             userId: reaction.userId,
           }));
 
+          // Mark these IDs as seen
+          setSeenIds(prev => {
+            const updated = new Set(prev);
+            newReactions.forEach((r: Reaction) => updated.add(r.id));
+            return updated;
+          });
+
           setReactions(prev => [...prev, ...newReactions]);
 
           // Remove reactions after animation completes (3 seconds)
           setTimeout(() => {
             setReactions(prev => prev.filter(r => !newReactions.find((nr: Reaction) => nr.id === r.id)));
           }, 3000);
+
+          // Clean up seen IDs after 5 seconds (they won't be returned by API anymore)
+          setTimeout(() => {
+            setSeenIds(prev => {
+              const updated = new Set(prev);
+              newReactions.forEach((r: Reaction) => updated.delete(r.id));
+              return updated;
+            });
+          }, 5000);
         }
       } catch (err) {
         console.error('[EmojiReactions] Fetch error:', err);
@@ -50,7 +72,7 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
 
     const interval = setInterval(fetchReactions, 1000);
     return () => clearInterval(interval);
-  }, [streamId]);
+  }, [streamId, seenIds]);
 
   return (
     <>
