@@ -11,9 +11,11 @@ interface HeaderProps {
   onToggleCollapse?: () => void;
   isSidebarCollapsed?: boolean;
   showHamburgerOnly?: boolean;
+  showParticipantManagement?: boolean;
+  participantManagementPanel?: React.ReactNode;
 }
 
-export function Header({ onToggleCollapse, isSidebarCollapsed = false, showHamburgerOnly = false }: HeaderProps) {
+export function Header({ onToggleCollapse, isSidebarCollapsed = false, showHamburgerOnly = false, showParticipantManagement = false, participantManagementPanel }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const pathname = usePathname();
 
@@ -74,31 +76,40 @@ export function Header({ onToggleCollapse, isSidebarCollapsed = false, showHambu
 
         {/* Right Section - Compact buttons */}
         <div className="flex items-center gap-4 flex-shrink-0">
-          {/* Bell Icon */}
-          <button className="w-14 h-14 rounded-full border-[3px] border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] flex items-center justify-center hover:opacity-80 transition-opacity bg-gradient-to-br from-[#EF4330]/70 to-[#1AAACE]/70">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </button>
+          {/* Participant Management - Only show on broadcast pages */}
+          {showParticipantManagement && participantManagementPanel}
 
-          {/* History/Clock Icon */}
-          <button className="w-14 h-14 rounded-full border-[3px] border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] flex items-center justify-center hover:opacity-80 transition-opacity bg-gradient-to-br from-[#EF4330]/70 to-[#1AAACE]/70">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
+          {/* Bell Icon - Hide on broadcast pages */}
+          {!showParticipantManagement && (
+            <button className="w-14 h-14 rounded-full border-[3px] border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] flex items-center justify-center hover:opacity-80 transition-opacity bg-gradient-to-br from-[#EF4330]/70 to-[#1AAACE]/70">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </button>
+          )}
 
-          {/* Upload Button */}
-          <Link
-            href="/upload"
-            className={`font-bold h-14 px-6 rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] hover:shadow-[3px_3px_0_1px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-base w-[86px] whitespace-nowrap flex items-center justify-center ${
-              isTransparent
-                ? 'bg-white/20 border-[3px] border-black text-black'
-                : 'bg-white text-black outline outline-[3px] outline-black'
-            }`}
-          >
-            Upload
-          </Link>
+          {/* History/Clock Icon - Hide on broadcast pages */}
+          {!showParticipantManagement && (
+            <button className="w-14 h-14 rounded-full border-[3px] border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] flex items-center justify-center hover:opacity-80 transition-opacity bg-gradient-to-br from-[#EF4330]/70 to-[#1AAACE]/70">
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+          )}
+
+          {/* Upload Button - Hide on broadcast pages */}
+          {!showParticipantManagement && (
+            <Link
+              href="/upload"
+              className={`font-bold h-14 px-6 rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] hover:shadow-[3px_3px_0_1px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all text-base w-[86px] whitespace-nowrap flex items-center justify-center ${
+                isTransparent
+                  ? 'bg-white/20 border-[3px] border-black text-black'
+                  : 'bg-white text-black outline outline-[3px] outline-black'
+              }`}
+            >
+              Upload
+            </Link>
+          )}
 
           {/* Connect Wallet Button */}
           <ConnectWallet isTransparent={isTransparent} />
