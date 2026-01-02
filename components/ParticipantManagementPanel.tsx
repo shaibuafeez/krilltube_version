@@ -166,41 +166,34 @@ export default function ParticipantManagementPanel({
     }
   };
 
-  // Toggle button - always visible
+  // Toggle button - header style
   const toggleButton = (
-    <button
-      onClick={() => setIsOpen(!isOpen)}
-      className="absolute top-20 right-4 z-50 pointer-events-auto
-        w-14 h-14 bg-white rounded-full
-        shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
-        outline outline-2 outline-offset-[-2px] outline-black
-        hover:bg-[#FFEEE5]
-        hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
-        hover:translate-x-[1px]
-        hover:translate-y-[1px]
-        transition-all
-        flex items-center justify-center relative">
-      <svg
-        className="w-6 h-6 text-black"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-        xmlns="http://www.w3.org/2000/svg">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-        />
-      </svg>
-      {joinRequests.length > 0 && (
-        <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full
-          flex items-center justify-center
-          border-2 border-white">
-          <span className="text-white text-xs font-bold">{joinRequests.length}</span>
-        </div>
-      )}
-    </button>
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-14 h-14 rounded-full border-[3px] border-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] flex items-center justify-center hover:opacity-80 transition-opacity bg-gradient-to-br from-[#EF4330]/70 to-[#1AAACE]/70 relative">
+        <svg
+          className="w-6 h-6 text-white"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg">
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+          />
+        </svg>
+        {joinRequests.length > 0 && (
+          <div className="absolute -top-1 -right-1 w-5 h-5 bg-red-600 rounded-full
+            flex items-center justify-center
+            border-2 border-white">
+            <span className="text-white text-xs font-bold">{joinRequests.length}</span>
+          </div>
+        )}
+      </button>
+    </div>
   );
 
   if (!isOpen) {
@@ -211,8 +204,8 @@ export default function ParticipantManagementPanel({
     <>
       {toggleButton}
 
-      {/* Panel */}
-      <div className="absolute top-20 right-20 z-40 w-96 max-h-[calc(100vh-140px)] pointer-events-auto
+      {/* Panel - Fixed positioning relative to viewport */}
+      <div className="fixed top-20 right-4 z-[70] w-96 max-h-[calc(100vh-100px)] pointer-events-auto
         bg-white rounded-[32px]
         shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
         outline outline-[3px] outline-offset-[-3px] outline-black
