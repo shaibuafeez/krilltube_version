@@ -406,3 +406,32 @@ body {
 .animate-slide-down {
   animation: slide-down 0.4s ease-in forwards;
 }
+
+/* Hide LiveKit Default Controls */
+/* Hide the default control bar that appears in the sidebar */
+.lk-control-bar,
+.lk-button-group,
+.lk-chat-toggle,
+.lk-settings-menu-toggle,
+.lk-disconnect-button,
+[data-lk-theme] .lk-control-bar,
+[data-lk-theme] .lk-button-group {
+  display: none !important;
+}
+
+/* Hide scrollbars on LiveKit containers */
+.lk-room-container,
+.lk-grid-layout,
+[data-lk-theme] {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.lk-room-container::-webkit-scrollbar,
+.lk-grid-layout::-webkit-scrollbar,
+[data-lk-theme]::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
