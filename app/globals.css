@@ -407,22 +407,43 @@ body {
   animation: slide-down 0.4s ease-in forwards;
 }
 
-/* Hide LiveKit Default Controls */
-/* Hide the default control bar that appears in the sidebar */
+/* Hide LiveKit Default Controls - Comprehensive */
+/* Hide ALL LiveKit default UI elements including control bar, buttons, and overlays */
 .lk-control-bar,
 .lk-button-group,
 .lk-chat-toggle,
 .lk-settings-menu-toggle,
 .lk-disconnect-button,
+.lk-button,
+.lk-media-device-menu,
+.lk-track-toggle,
+.lk-camera-toggle,
+.lk-microphone-toggle,
+.lk-screen-share-toggle,
+.lk-participant-toggle,
+.lk-more-options,
 [data-lk-theme] .lk-control-bar,
-[data-lk-theme] .lk-button-group {
+[data-lk-theme] .lk-button-group,
+[data-lk-theme] .lk-button,
+[data-lk-theme] button,
+[data-lk-theme] > div > button,
+[class*="lk-"] button,
+button[class*="lk-"],
+div[class*="ControlBar"],
+div[class*="ButtonGroup"] {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 /* Hide scrollbars on LiveKit containers */
 .lk-room-container,
 .lk-grid-layout,
-[data-lk-theme] {
+.lk-focus-layout,
+.lk-carousel-layout,
+[data-lk-theme],
+[data-lk-theme] > div {
   overflow: hidden !important;
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
@@ -430,8 +451,18 @@ body {
 
 .lk-room-container::-webkit-scrollbar,
 .lk-grid-layout::-webkit-scrollbar,
-[data-lk-theme]::-webkit-scrollbar {
+.lk-focus-layout::-webkit-scrollbar,
+.lk-carousel-layout::-webkit-scrollbar,
+[data-lk-theme]::-webkit-scrollbar,
+[data-lk-theme] > div::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+}
+
+/* Prevent hover states on hidden LiveKit controls */
+[data-lk-theme] *:hover button,
+[data-lk-theme] div:hover > button {
+  display: none !important;
+  visibility: hidden !important;
 }
