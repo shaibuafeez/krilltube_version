@@ -8,6 +8,11 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 // In-memory store for reactions (temporary, real-time only)
 // In production, consider using Redis or similar for distributed systems
 interface Reaction {

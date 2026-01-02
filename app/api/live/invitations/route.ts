@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
+
 // GET - Fetch invitations for a user (as inviter or invitee)
 export async function GET(request: NextRequest) {
   try {
