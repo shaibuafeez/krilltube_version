@@ -124,22 +124,22 @@ export default function BroadcastPage() {
           />
         }
       />
-      <div className="min-h-screen bg-gradient-to-br from-[#0668A6] to-[#1AAACE] p-6 pt-24">
+      <div className="min-h-screen bg-gradient-to-br from-[#0668A6] to-[#1AAACE] p-0 sm:p-6 pt-16 sm:pt-24">
         <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-6 flex justify-between items-start">
+        {/* Header - Hide on mobile, compact on desktop */}
+        <div className="mb-2 sm:mb-6 px-4 sm:px-0 hidden sm:flex justify-between items-start">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <span className="px-3 py-1.5 bg-red-600 text-white text-sm font-bold rounded-full
                 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">
                 🔴 LIVE
               </span>
-              <h1 className="text-2xl font-bold text-white font-['Outfit']">
+              <h1 className="text-xl sm:text-2xl font-bold text-white font-['Outfit']">
                 {streamInfo?.title || 'Live Broadcast'}
               </h1>
             </div>
             {streamInfo?.description && (
-              <p className="text-white/80 font-['Outfit']">
+              <p className="text-white/80 font-['Outfit'] text-sm">
                 {streamInfo.description}
               </p>
             )}
@@ -147,7 +147,7 @@ export default function BroadcastPage() {
 
           <button
             onClick={handleEndStream}
-            className="px-6 py-3 bg-red-600 rounded-[32px] text-white font-bold font-['Outfit']
+            className="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 rounded-[32px] text-white font-bold font-['Outfit'] text-sm sm:text-base
               shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
               outline outline-2 outline-offset-[-2px] outline-black
               hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
@@ -160,10 +160,10 @@ export default function BroadcastPage() {
 
         {/* Live Stream Video with Overlay Chat */}
         <div className="relative">
-          <div className="rounded-[32px] overflow-hidden
-            shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
-            outline outline-[3px] outline-offset-[-3px] outline-black
-            bg-black h-[calc(100vh-200px)]">
+          <div className="sm:rounded-[32px] overflow-hidden
+            sm:shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
+            sm:outline sm:outline-[3px] sm:outline-offset-[-3px] sm:outline-black
+            bg-black h-screen sm:h-[calc(100vh-200px)]">
 
             {/* Inner container to keep all absolute elements inside */}
             <div className="relative w-full h-full">
