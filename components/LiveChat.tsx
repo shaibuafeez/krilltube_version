@@ -21,12 +21,16 @@ interface LiveChatProps {
   creatorAddress: string;
 }
 
+const EMOJI_OPTIONS = ['❤️', '👍', '😂', '🔥', '🎉', '😮', '👏', '💯'];
+
 export default function LiveChat({ roomName, isBroadcaster = false, streamId, creatorAddress }: LiveChatProps) {
   const currentAccount = useCurrentAccount();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
+  const [showEmojiPanel, setShowEmojiPanel] = useState(false);
+  const [isSendingReaction, setIsSendingReaction] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -129,6 +133,33 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
     // The Super Chat message will appear via polling
   };
 
+  const sendReaction = async (emoji: string) => {
+    if (!currentAccount?.address || isSendingReaction) return;
+
+    setIsSendingReaction(true);
+    setShowEmojiPanel(false);
+
+    try {
+      const response = await fetch('/api/live/reactions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          streamId,
+          userId: currentAccount.address,
+          emoji,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send reaction');
+      }
+    } catch (err) {
+      console.error('[LiveChat] Send reaction error:', err);
+    } finally {
+      setIsSendingReaction(false);
+    }
+  };
+
   // Generate avatar shade from userId (black and white)
   const getAvatarColor = (userId: string) => {
     const colors = [
@@ -219,7 +250,25 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
       </div>
 
       {/* Message Input - TikTok Live Style */}
-      <div className="p-2">
+      <div className="p-2 relative">
+        {/* Emoji Picker Panel - Appears above input */}
+        {showEmojiPanel && (
+          <div className="absolute bottom-full left-2 mb-2 p-2 bg-white rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black z-10">
+            <div className="grid grid-cols-4 gap-1">
+              {EMOJI_OPTIONS.map((emoji) => (
+                <button
+                  key={emoji}
+                  onClick={() => sendReaction(emoji)}
+                  disabled={isSendingReaction}
+                  className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-all flex items-center justify-center text-xl"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="flex gap-1.5">
           <input
             type="text"
@@ -277,6 +326,19 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
               transition-colors"
           >
             {isLoading ? '...' : 'Send'}
+          </button>
+
+          {/* Emoji Reaction Button - After Send button */}
+          <button
+            type="button"
+            onClick={() => setShowEmojiPanel(!showEmojiPanel)}
+            disabled={!currentAccount?.address}
+            className="w-10 h-10 flex-shrink-0 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            title="React with emoji"
+          >
+            <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
           </button>
         </div>
       </div>
