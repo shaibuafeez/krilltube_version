@@ -125,7 +125,9 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
               <div className="w-24 h-24 bg-gradient-to-br from-walrus-mint to-walrus-grape
                 rounded-full flex items-center justify-center mx-auto mb-4
                 border-4 border-black">
-                <span className="text-4xl">📹</span>
+                <svg className="w-12 h-12 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
               </div>
               <p className="text-white text-xl font-bold font-['Outfit'] mb-2">
                 Camera not detected
