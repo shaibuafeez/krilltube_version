@@ -210,33 +210,33 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
                 </div>
               )}
 
-              {/* Super Chat Message - Highlighted */}
+              {/* Super Chat Message - White and Minimalistic */}
               {msg.donationAmount && !msg.deleted ? (
                 <div className="px-3 py-1.5
-                  bg-gradient-to-r from-yellow-400/95 to-orange-500/95
-                  backdrop-blur-sm rounded-2xl">
+                  bg-white/90 backdrop-blur-sm rounded-2xl
+                  border border-white/20">
                   <div className="flex items-baseline gap-1.5">
                     <p className="text-xs font-bold text-black font-['Outfit']">
                       {msg.userName}
                     </p>
-                    <span className="text-xs font-semibold text-black/80 font-['Outfit']">
+                    <span className="text-xs font-semibold text-black/70 font-['Outfit']">
                       💰 {(parseInt(msg.donationAmount) / 1e9).toFixed(2)} SUI
                     </span>
                   </div>
-                  <p className="text-sm text-black font-['Outfit'] font-medium">
+                  <p className="text-sm text-black/80 font-['Outfit'] font-medium">
                     {msg.message}
                   </p>
                 </div>
               ) : (
-                /* Regular Message - Compact */
+                /* Regular Message - Reduced Opacity */
                 !msg.deleted && (
                   <div className="px-3 py-1.5
-                    bg-black/60 backdrop-blur-sm rounded-2xl">
+                    bg-black/40 backdrop-blur-sm rounded-2xl">
                     <p className="text-xs font-['Outfit']">
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-white/90">
                         {msg.userName}:
                       </span>
-                      <span className="text-white/90 ml-1">
+                      <span className="text-white/80 ml-1">
                         {msg.message}
                       </span>
                     </p>
