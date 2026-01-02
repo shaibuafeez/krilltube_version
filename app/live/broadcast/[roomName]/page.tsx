@@ -26,7 +26,9 @@ function BroadcastContent({
   handleEndStream: () => void;
 }) {
   const participants = useParticipants();
-  const viewerCount = Math.max(0, participants.length - 1);
+  const viewerCount = participants.length;
+
+  console.log('[Broadcast] Participants:', participants.length, 'Viewer count:', viewerCount);
 
   return (
     <>

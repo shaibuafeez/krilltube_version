@@ -26,7 +26,9 @@ function StreamContent({
   roomName: string;
 }) {
   const participants = useParticipants();
-  const viewerCount = Math.max(0, participants.length - 1);
+  const viewerCount = participants.length;
+
+  console.log('[Watch] Participants:', participants.length, 'Viewer count:', viewerCount);
 
   return (
     <>
