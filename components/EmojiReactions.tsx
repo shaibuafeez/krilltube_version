@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useCurrentAccount } from '@mysten/dapp-kit';
 
 interface Reaction {
   id: string;
@@ -16,13 +15,8 @@ interface EmojiReactionsProps {
   roomName: string;
 }
 
-const EMOJI_OPTIONS = ['❤️', '👍', '😂', '🔥', '🎉', '😮', '👏', '💯'];
-
 export default function EmojiReactions({ streamId, roomName }: EmojiReactionsProps) {
-  const currentAccount = useCurrentAccount();
   const [reactions, setReactions] = useState<Reaction[]>([]);
-  const [showPanel, setShowPanel] = useState(false);
-  const [isSending, setIsSending] = useState(false);
 
   // Poll for new reactions every second
   useEffect(() => {
@@ -58,50 +52,9 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
     return () => clearInterval(interval);
   }, [streamId]);
 
-  const sendReaction = async (emoji: string) => {
-    if (!currentAccount?.address || isSending) return;
-
-    setIsSending(true);
-
-    try {
-      const response = await fetch('/api/live/reactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          streamId,
-          userId: currentAccount.address,
-          emoji,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send reaction');
-      }
-
-      // Add immediate visual feedback
-      const newReaction: Reaction = {
-        id: `local-${Date.now()}`,
-        emoji,
-        x: Math.random() * 80 + 10,
-        y: 100,
-        userId: currentAccount.address,
-      };
-
-      setReactions(prev => [...prev, newReaction]);
-
-      setTimeout(() => {
-        setReactions(prev => prev.filter(r => r.id !== newReaction.id));
-      }, 3000);
-    } catch (err) {
-      console.error('[EmojiReactions] Send error:', err);
-    } finally {
-      setIsSending(false);
-    }
-  };
-
   return (
     <>
-      {/* Floating Reactions Overlay */}
+      {/* Floating Reactions Overlay - Only the animations, no button */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
         {reactions.map((reaction) => (
           <div
@@ -117,45 +70,6 @@ export default function EmojiReactions({ streamId, roomName }: EmojiReactionsPro
             {reaction.emoji}
           </div>
         ))}
-      </div>
-
-      {/* Reaction Button - Bottom left */}
-      <div className="absolute bottom-6 left-6 pointer-events-auto z-30">
-        {showPanel ? (
-          // Emoji Selection Panel
-          <div className="flex flex-col gap-2 items-end">
-            <div className="grid grid-cols-4 gap-2 p-3 bg-white rounded-[24px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black">
-              {EMOJI_OPTIONS.map((emoji) => (
-                <button
-                  key={emoji}
-                  onClick={() => sendReaction(emoji)}
-                  disabled={isSending}
-                  className="w-12 h-12 rounded-full bg-[#FFEEE5] shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] outline outline-1 outline-offset-[-1px] outline-black hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] hover:scale-110 disabled:opacity-50 transition-all flex items-center justify-center text-2xl">
-                  {emoji}
-                </button>
-              ))}
-            </div>
-
-            {/* Close Button */}
-            <button
-              onClick={() => setShowPanel(false)}
-              className="w-12 h-12 rounded-full bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] opacity-80 hover:opacity-100 transition-all flex items-center justify-center">
-              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        ) : (
-          // Emoji Button - White minimalistic style
-          <button
-            onClick={() => setShowPanel(true)}
-            title="React with emoji"
-            className="w-12 h-12 rounded-full bg-white shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[#FFEEE5] opacity-80 hover:opacity-100 transition-all flex items-center justify-center">
-            <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-        )}
       </div>
 
       {/* CSS for floating animation */}
