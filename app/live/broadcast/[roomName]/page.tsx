@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useCurrentAccount } from '@mysten/dapp-kit';
-import { LiveKitRoom } from '@livekit/components-react';
+import { LiveKitRoom, useParticipants } from '@livekit/components-react';
 import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
 import ParticipantManagementPanel from '@/components/ParticipantManagementPanel';
@@ -11,6 +11,65 @@ import InvitationNotifications from '@/components/InvitationNotifications';
 import CoHostControls from '@/components/CoHostControls';
 import EmojiReactions from '@/components/EmojiReactions';
 import { Header } from '@/components/Header';
+import MobileStreamMenu from '@/components/MobileStreamMenu';
+
+// Wrapper component to access LiveKit context
+function BroadcastContent({
+  streamInfo,
+  currentAccount,
+  roomName,
+  handleEndStream,
+}: {
+  streamInfo: any;
+  currentAccount: any;
+  roomName: string;
+  handleEndStream: () => void;
+}) {
+  const participants = useParticipants();
+  const viewerCount = Math.max(0, participants.length - 1);
+
+  return (
+    <>
+      {/* Mobile Hamburger Menu - Only on mobile */}
+      <MobileStreamMenu
+        streamTitle={streamInfo?.title}
+        streamDescription={streamInfo?.description}
+        viewerCount={viewerCount}
+        isLive={true}
+        isBroadcaster={true}
+        onEndStream={handleEndStream}
+      />
+
+      <LiveStreamPlayer isBroadcaster={true} />
+
+      {/* Co-host Controls - Bottom right (includes invite button) */}
+      {currentAccount?.address && (
+        <CoHostControls
+          streamId={streamInfo?.id || ''}
+          userId={currentAccount.address}
+          isBroadcaster={true}
+        />
+      )}
+
+      {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
+      <LiveChatOverlay
+        roomName={roomName}
+        streamId={streamInfo?.id || ''}
+        creatorAddress={streamInfo?.creatorId || ''}
+        isBroadcaster={true}
+      />
+
+      {/* Invitation Notifications - Inside video screen */}
+      <InvitationNotifications />
+
+      {/* Emoji Reactions - Floating animations */}
+      <EmojiReactions
+        streamId={streamInfo?.id || ''}
+        roomName={roomName}
+      />
+    </>
+  );
+}
 
 export default function BroadcastPage() {
   const params = useParams();
@@ -124,7 +183,7 @@ export default function BroadcastPage() {
           />
         }
       />
-      <div className="min-h-screen bg-gradient-to-br from-[#0668A6] to-[#1AAACE] p-0 sm:p-6 pt-16 sm:pt-24">
+      <div className="min-h-screen bg-gradient-to-br from-[#0668A6] to-[#1AAACE] p-0 md:p-6 pt-0 md:pt-24">
         <div className="max-w-7xl mx-auto">
         {/* Header - Hide on mobile, compact on desktop */}
         <div className="mb-2 sm:mb-6 px-4 sm:px-0 hidden sm:flex justify-between items-start">
@@ -175,34 +234,13 @@ export default function BroadcastPage() {
                 data-lk-theme="default"
                 className="h-full"
               >
-                <LiveStreamPlayer isBroadcaster={true} />
-
-                {/* Co-host Controls - Bottom right (includes invite button) */}
-                {currentAccount?.address && (
-                  <CoHostControls
-                    streamId={streamInfo?.id || ''}
-                    userId={currentAccount.address}
-                    isBroadcaster={true}
-                  />
-                )}
+                <BroadcastContent
+                  streamInfo={streamInfo}
+                  currentAccount={currentAccount}
+                  roomName={roomName}
+                  handleEndStream={handleEndStream}
+                />
               </LiveKitRoom>
-
-              {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
-              <LiveChatOverlay
-                roomName={roomName}
-                streamId={streamInfo?.id || ''}
-                creatorAddress={streamInfo?.creatorId || ''}
-                isBroadcaster={true}
-              />
-
-              {/* Invitation Notifications - Inside video screen */}
-              <InvitationNotifications />
-
-              {/* Emoji Reactions - Floating animations */}
-              <EmojiReactions
-                streamId={streamInfo?.id || ''}
-                roomName={roomName}
-              />
             </div>
           </div>
         </div>

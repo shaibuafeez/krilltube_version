@@ -121,19 +121,19 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="text-center">
-              <div className="w-24 h-24 bg-gradient-to-br from-walrus-mint to-walrus-grape
-                rounded-full flex items-center justify-center mx-auto mb-4
-                border-4 border-black">
-                <svg className="w-12 h-12 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            <div className="text-center max-w-xs px-6">
+              <div className="w-16 h-16 bg-white/10 backdrop-blur-sm
+                rounded-2xl flex items-center justify-center mx-auto mb-3
+                border border-white/20">
+                <svg className="w-8 h-8 text-white/80" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="1.5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
                 </svg>
               </div>
-              <p className="text-white text-xl font-bold font-['Outfit'] mb-2">
-                Camera not detected
+              <p className="text-white text-base font-semibold font-['Outfit'] mb-1">
+                No camera detected
               </p>
-              <p className="text-white/70 text-sm font-['Outfit']">
-                Please enable your camera to start broadcasting
+              <p className="text-white/60 text-xs font-['Outfit']">
+                Enable camera to start
               </p>
             </div>
           </div>
@@ -201,42 +201,17 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
           )
         ))}
 
-        {/* Broadcasting indicator */}
-        <div className="absolute top-4 left-4">
-          <div className="px-4 py-2 bg-red-600/90 rounded-full backdrop-blur-sm
-            flex items-center gap-2">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <p className="text-white text-sm font-semibold font-['Outfit'] tracking-wide">
-              LIVE
-            </p>
-          </div>
-        </div>
-
         {/* Screen sharing indicator */}
         {isShowingScreenShare && (
-          <div className="absolute top-16 left-4">
-            <div className="w-10 h-10 bg-purple-600/90 rounded-full backdrop-blur-sm
+          <div className="absolute top-4 left-4 md:top-6 md:left-6">
+            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-600/90 rounded-full backdrop-blur-sm
               flex items-center justify-center
               shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
               outline outline-2 outline-offset-[-2px] outline-white">
-              <span className="text-xl">📺</span>
+              <span className="text-lg md:text-xl">📺</span>
             </div>
           </div>
         )}
-
-        {/* Viewer count */}
-        <div className="absolute top-4 right-4">
-          <div className="px-3 py-3 bg-black/80 rounded-full backdrop-blur-sm
-            border-2 border-white/30 flex items-center gap-2">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            <span className="text-white text-sm font-bold font-['Outfit'] min-w-[1.5rem] text-center">
-              {viewerCount}
-            </span>
-          </div>
-        </div>
       </div>
     );
   }
@@ -353,42 +328,17 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
         )
       ))}
 
-      {/* Live indicator */}
-      <div className="absolute top-4 left-4">
-        <div className="px-4 py-2 bg-red-600/90 rounded-full backdrop-blur-sm
-          flex items-center gap-2">
-          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-          <p className="text-white text-sm font-semibold font-['Outfit'] tracking-wide">
-            LIVE
-          </p>
-        </div>
-      </div>
-
       {/* Screen sharing indicator */}
       {isShowingScreenShare && (
-        <div className="absolute top-16 left-4">
-          <div className="w-10 h-10 bg-purple-600/90 rounded-full backdrop-blur-sm
+        <div className="absolute top-4 left-4 md:top-6 md:left-6">
+          <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-600/90 rounded-full backdrop-blur-sm
             flex items-center justify-center
             shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
             outline outline-2 outline-offset-[-2px] outline-white">
-            <span className="text-xl">📺</span>
+            <span className="text-lg md:text-xl">📺</span>
           </div>
         </div>
       )}
-
-      {/* Viewer count */}
-      <div className="absolute top-4 right-4">
-        <div className="px-3 py-3 bg-black/80 rounded-full backdrop-blur-sm
-          border-2 border-white/30 flex items-center gap-2">
-          <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
-          <span className="text-white text-sm font-bold font-['Outfit'] min-w-[1.5rem] text-center">
-            {viewerCount}
-          </span>
-        </div>
-      </div>
     </div>
   );
 }

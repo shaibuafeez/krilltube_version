@@ -190,7 +190,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
         className="flex-1 overflow-y-auto space-y-1.5 flex flex-col justify-end"
       >
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center py-4">
+          <div className="flex items-center justify-center py-4 hidden md:flex">
             <p className="text-white/60 text-xs font-['Outfit'] px-3 py-1.5 bg-black/40 rounded-full backdrop-blur-sm">
               💬 Start chatting!
             </p>
@@ -310,6 +310,20 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
               focus:bg-gray-800/90 transition-colors"
           />
 
+          {/* Send Button */}
+          <button
+            type="button"
+            onClick={handleSendMessage}
+            disabled={!inputMessage.trim() || isLoading || !currentAccount?.address}
+            className="px-4 py-2.5 flex-shrink-0 bg-pink-500/90 backdrop-blur-sm rounded-full
+              text-white font-semibold font-['Outfit'] text-sm
+              hover:bg-pink-500
+              disabled:opacity-50 disabled:cursor-not-allowed
+              transition-colors"
+          >
+            {isLoading ? '...' : 'Send'}
+          </button>
+
           {/* Gift Icon Button - Only show for viewers, not broadcaster */}
           {!isBroadcaster && (
             <button
@@ -330,21 +344,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
             </button>
           )}
 
-          {/* Send Button */}
-          <button
-            type="button"
-            onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || isLoading || !currentAccount?.address}
-            className="px-4 py-2.5 flex-shrink-0 bg-pink-500/90 backdrop-blur-sm rounded-full
-              text-white font-semibold font-['Outfit'] text-sm
-              hover:bg-pink-500
-              disabled:opacity-50 disabled:cursor-not-allowed
-              transition-colors"
-          >
-            {isLoading ? '...' : 'Send'}
-          </button>
-
-          {/* Emoji Reaction Button - After Send button */}
+          {/* Emoji Reaction Button - After Gift button */}
           <button
             type="button"
             onClick={() => setShowEmojiPanel(!showEmojiPanel)}

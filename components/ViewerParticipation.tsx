@@ -182,9 +182,9 @@ export default function ViewerParticipation({
     );
   }
 
-  // Default: Show "Request to Join" button
+  // Default: Show "Request to Join" button - Hide on mobile
   return (
-    <div className="absolute bottom-4 right-4 pointer-events-auto">
+    <div className="absolute bottom-4 right-4 pointer-events-auto hidden md:block">
       <div className="flex flex-col gap-2 items-end">
         {error && (
           <div className="px-3 py-2 bg-red-600/90 rounded-lg backdrop-blur-sm">
