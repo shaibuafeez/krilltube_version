@@ -112,7 +112,7 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
       : otherVideoTracks;
 
     return (
-      <div className="relative w-full h-full bg-black rounded-[32px] overflow-hidden">
+      <div className="relative w-full h-full bg-black overflow-hidden">
         {/* Main video (screen share or camera) */}
         {mainTrack && mainTrack.publication ? (
           <VideoTrack
@@ -139,9 +139,9 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
           </div>
         )}
 
-        {/* Participant thumbnails (own camera when screen sharing + co-hosts) - Clickable to pin */}
+        {/* Participant thumbnails - Google Meet style (minimal) */}
         {thumbnailTracks.length > 0 && (
-          <div className="absolute top-20 right-4 flex flex-col gap-3 max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="absolute bottom-24 right-4 flex flex-col gap-2 max-h-[calc(100vh-300px)] overflow-y-auto">
             {thumbnailTracks.map((track, index) => {
               const isPinned = pinnedParticipantId === track?.participant.identity;
               const isActiveSpeaker = activeSpeakerId === track?.participant.identity;
@@ -150,44 +150,24 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
                 <div
                   key={track.participant.identity + index}
                   onClick={() => {
-                    // Toggle pin: if already pinned, unpin; otherwise pin this participant
                     setPinnedParticipantId(isPinned ? null : track.participant.identity);
                   }}
-                  className={`w-40 h-32 rounded-2xl overflow-hidden
-                    shadow-[3px_3px_0px_0px_rgba(0,0,0,0.6)]
-                    bg-gray-900 relative opacity-80 hover:opacity-100 transition-all
-                    cursor-pointer hover:scale-105
-                    ${isPinned ? 'outline outline-4 outline-offset-[-4px] outline-yellow-400 ring-2 ring-yellow-400' :
-                      isActiveSpeaker ? 'outline outline-3 outline-offset-[-3px] outline-green-400' :
-                      'outline outline-2 outline-offset-[-2px] outline-white/60'}`}>
+                  className={`w-28 h-20 rounded-lg overflow-hidden bg-gray-900 relative
+                    cursor-pointer transition-all hover:scale-105
+                    ${isPinned ? 'ring-2 ring-blue-500' :
+                      isActiveSpeaker ? 'ring-2 ring-green-500' : ''}`}>
                   <VideoTrack
                     trackRef={track}
                     className="w-full h-full object-cover"
                   />
                   {/* Participant name overlay */}
-                  <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/70 rounded-lg backdrop-blur-sm">
-                    <p className="text-white text-xs font-semibold font-['Outfit']">
+                  <div className="absolute bottom-1 left-1 right-1 px-1.5 py-0.5 bg-gray-900/80 backdrop-blur-sm rounded">
+                    <p className="text-white text-[10px] font-medium font-['Outfit'] truncate">
                       {track.participant.isLocal
                         ? 'You'
                         : (track.participant.name || track.participant.identity.slice(0, 8))}
                     </p>
                   </div>
-                  {/* Pin indicator */}
-                  {isPinned && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                      <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
-                      </svg>
-                    </div>
-                  )}
-                  {/* Active speaker indicator */}
-                  {!isPinned && isActiveSpeaker && (
-                    <div className="absolute top-2 right-2 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center animate-pulse">
-                      <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
                 </div>
               );
             })}
@@ -203,12 +183,10 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
 
         {/* Screen sharing indicator */}
         {isShowingScreenShare && (
-          <div className="absolute top-4 left-4 md:top-6 md:left-6">
-            <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-600/90 rounded-full backdrop-blur-sm
-              flex items-center justify-center
-              shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
-              outline outline-2 outline-offset-[-2px] outline-white">
-              <span className="text-lg md:text-xl">📺</span>
+          <div className="absolute top-4 left-4">
+            <div className="px-3 py-1.5 bg-gray-900/90 backdrop-blur-md rounded-full flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-white text-xs font-medium font-['Outfit']">Presenting</span>
             </div>
           </div>
         )}
@@ -245,7 +223,7 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
   const otherVideoTracks = videoTracks.filter(track => track !== mainTrack);
 
   return (
-    <div className="relative w-full h-full bg-black rounded-[32px] overflow-hidden">
+    <div className="relative w-full h-full bg-black overflow-hidden">
       {/* Main video (screen share or primary camera) */}
       {mainTrack && mainTrack.publication ? (
         <VideoTrack
@@ -266,9 +244,9 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
         </div>
       )}
 
-      {/* Participant thumbnails - Clickable to pin and switch view */}
+      {/* Participant thumbnails - Google Meet style (minimal) */}
       {otherVideoTracks.length > 0 && (
-        <div className="absolute top-20 right-4 flex flex-col gap-3 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <div className="absolute bottom-24 right-4 flex flex-col gap-2 max-h-[calc(100vh-300px)] overflow-y-auto">
           {otherVideoTracks.map((track, index) => {
             const isPinned = pinnedParticipantId === track.participant.identity;
             const isActiveSpeaker = activeSpeakerId === track.participant.identity;
@@ -277,16 +255,12 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
               <div
                 key={track.participant.identity + index}
                 onClick={() => {
-                  // Toggle pin: if already pinned, unpin; otherwise pin this participant
                   setPinnedParticipantId(isPinned ? null : track.participant.identity);
                 }}
-                className={`w-40 h-32 rounded-2xl overflow-hidden
-                  shadow-[3px_3px_0px_0px_rgba(0,0,0,0.6)]
-                  bg-gray-900 relative opacity-80 hover:opacity-100 transition-all
-                  cursor-pointer hover:scale-105
-                  ${isPinned ? 'outline outline-4 outline-offset-[-4px] outline-yellow-400 ring-2 ring-yellow-400' :
-                    isActiveSpeaker ? 'outline outline-3 outline-offset-[-3px] outline-green-400' :
-                    'outline outline-2 outline-offset-[-2px] outline-white/60'}`}>
+                className={`w-28 h-20 rounded-lg overflow-hidden bg-gray-900 relative
+                  cursor-pointer transition-all hover:scale-105
+                  ${isPinned ? 'ring-2 ring-blue-500' :
+                    isActiveSpeaker ? 'ring-2 ring-green-500' : ''}`}>
                 {track.publication ? (
                   <VideoTrack
                     trackRef={track}
@@ -294,27 +268,11 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
                   />
                 ) : null}
                 {/* Participant name overlay */}
-                <div className="absolute bottom-2 left-2 px-2 py-1 bg-black/70 rounded-lg backdrop-blur-sm">
-                  <p className="text-white text-xs font-semibold font-['Outfit']">
+                <div className="absolute bottom-1 left-1 right-1 px-1.5 py-0.5 bg-gray-900/80 backdrop-blur-sm rounded">
+                  <p className="text-white text-[10px] font-medium font-['Outfit'] truncate">
                     {track.participant.name || track.participant.identity.slice(0, 8)}
                   </p>
                 </div>
-                {/* Pin indicator */}
-                {isPinned && (
-                  <div className="absolute top-2 right-2 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
-                    </svg>
-                  </div>
-                )}
-                {/* Active speaker indicator */}
-                {!isPinned && isActiveSpeaker && (
-                  <div className="absolute top-2 right-2 w-6 h-6 bg-green-400 rounded-full flex items-center justify-center animate-pulse">
-                    <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M7 4a3 3 0 016 0v4a3 3 0 11-6 0V4zm4 10.93A7.001 7.001 0 0017 8a1 1 0 10-2 0A5 5 0 015 8a1 1 0 00-2 0 7.001 7.001 0 006 6.93V17H6a1 1 0 100 2h8a1 1 0 100-2h-3v-2.07z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -330,12 +288,10 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
 
       {/* Screen sharing indicator */}
       {isShowingScreenShare && (
-        <div className="absolute top-4 left-4 md:top-6 md:left-6">
-          <div className="w-8 h-8 md:w-10 md:h-10 bg-purple-600/90 rounded-full backdrop-blur-sm
-            flex items-center justify-center
-            shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
-            outline outline-2 outline-offset-[-2px] outline-white">
-            <span className="text-lg md:text-xl">📺</span>
+        <div className="absolute top-4 left-4">
+          <div className="px-3 py-1.5 bg-gray-900/90 backdrop-blur-md rounded-full flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-white text-xs font-medium font-['Outfit']">Presenting</span>
           </div>
         </div>
       )}

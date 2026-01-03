@@ -12,6 +12,7 @@ import CoHostControls from '@/components/CoHostControls';
 import EmojiReactions from '@/components/EmojiReactions';
 import { Header } from '@/components/Header';
 import MobileStreamMenu from '@/components/MobileStreamMenu';
+import MeetStyleControls from '@/components/MeetStyleControls';
 
 // Wrapper component to access LiveKit context
 function BroadcastContent({
@@ -44,14 +45,11 @@ function BroadcastContent({
 
       <LiveStreamPlayer isBroadcaster={true} />
 
-      {/* Co-host Controls - Bottom right (includes invite button) */}
-      {currentAccount?.address && (
-        <CoHostControls
-          streamId={streamInfo?.id || ''}
-          userId={currentAccount.address}
-          isBroadcaster={true}
-        />
-      )}
+      {/* Google Meet Style Controls - Bottom center */}
+      <MeetStyleControls
+        onLeave={handleEndStream}
+        isBroadcaster={true}
+      />
 
       {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
       <LiveChatOverlay

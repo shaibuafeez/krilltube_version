@@ -8,21 +8,19 @@ import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
 import ViewerParticipation from '@/components/ViewerParticipation';
 import InvitationNotifications from '@/components/InvitationNotifications';
-import CoHostControls from '@/components/CoHostControls';
 import EmojiReactions from '@/components/EmojiReactions';
 import { Header } from '@/components/Header';
 import MobileStreamMenu from '@/components/MobileStreamMenu';
+import MeetStyleControls from '@/components/MeetStyleControls';
 
 // Wrapper component to access LiveKit context
 function StreamContent({
   streamInfo,
   userRole,
-  currentAccount,
   roomName,
 }: {
   streamInfo: any;
   userRole: 'viewer' | 'co-host';
-  currentAccount: any;
   roomName: string;
 }) {
   const participants = useParticipants();
@@ -44,11 +42,11 @@ function StreamContent({
 
       <LiveStreamPlayer isBroadcaster={userRole === 'co-host'} />
 
-      {/* Co-host controls - Show when promoted */}
-      {userRole === 'co-host' && currentAccount?.address && (
-        <CoHostControls
-          streamId={streamInfo?.id || ''}
-          userId={currentAccount.address}
+      {/* Google Meet Style Controls - Show when promoted to co-host */}
+      {userRole === 'co-host' && (
+        <MeetStyleControls
+          onLeave={() => window.location.href = '/'}
+          isBroadcaster={false}
         />
       )}
 
@@ -281,7 +279,6 @@ export default function WatchStreamPage() {
                 <StreamContent
                   streamInfo={streamInfo}
                   userRole={userRole}
-                  currentAccount={currentAccount}
                   roomName={roomName}
                 />
               </LiveKitRoom>
