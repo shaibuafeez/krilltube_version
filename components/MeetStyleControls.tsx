@@ -3,28 +3,30 @@
 import { useState, useEffect } from 'react';
 import { useTracks, useLocalParticipant } from '@livekit/components-react';
 import { Track } from 'livekit-client';
+import EmojiReactionPicker from './EmojiReactionPicker';
 
 interface MeetStyleControlsProps {
   onLeave?: () => void;
   isBroadcaster?: boolean;
   onOpenGift?: () => void;
-  onOpenReactions?: () => void;
   isChatOpen?: boolean;
   onToggleChat?: () => void;
+  streamId?: string;
 }
 
 export default function MeetStyleControls({
   onLeave,
   isBroadcaster = false,
   onOpenGift,
-  onOpenReactions,
   isChatOpen = false,
   onToggleChat,
+  streamId = '',
 }: MeetStyleControlsProps) {
   const { localParticipant } = useLocalParticipant();
   const [isMicEnabled, setIsMicEnabled] = useState(true);
   const [isCameraEnabled, setIsCameraEnabled] = useState(true);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   const tracks = useTracks([
     { source: Track.Source.Camera },
@@ -75,7 +77,14 @@ export default function MeetStyleControls({
 
   return (
     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
-      <div className="flex items-center gap-2 px-4 py-2 bg-[#202124] rounded-full shadow-lg border border-gray-700/50">
+      {/* Emoji Reaction Picker */}
+      <EmojiReactionPicker
+        streamId={streamId}
+        isOpen={isEmojiPickerOpen}
+        onClose={() => setIsEmojiPickerOpen(false)}
+      />
+
+      <div className="flex items-center gap-2 px-4 py-2 bg-[#202124] rounded-full shadow-lg border border-gray-700/50 relative">
         {/* Microphone Toggle */}
         <button
           onClick={toggleMicrophone}
@@ -154,17 +163,19 @@ export default function MeetStyleControls({
         )}
 
         {/* Reactions Button */}
-        {onOpenReactions && (
-          <button
-            onClick={onOpenReactions}
-            className="w-10 h-10 rounded-full bg-[#3c4043] hover:bg-[#5f6368] flex items-center justify-center transition-all text-white"
-            title="React with emoji"
-          >
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
-        )}
+        <button
+          onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+          className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
+            ${isEmojiPickerOpen
+              ? 'bg-[#1a73e8] hover:bg-[#1765cc] text-white'
+              : 'bg-[#3c4043] hover:bg-[#5f6368] text-white'
+            }`}
+          title="React with emoji"
+        >
+          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
 
         {/* Gift Button - Only show for viewers */}
         {!isBroadcaster && onOpenGift && (

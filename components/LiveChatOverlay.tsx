@@ -8,7 +8,6 @@ interface LiveChatOverlayProps {
   creatorAddress: string;
   isBroadcaster: boolean;
   onOpenGift?: () => void;
-  onOpenReactions?: () => void;
   isChatOpen: boolean;
 }
 
@@ -18,7 +17,6 @@ export default function LiveChatOverlay({
   creatorAddress,
   isBroadcaster,
   onOpenGift,
-  onOpenReactions,
   isChatOpen,
 }: LiveChatOverlayProps) {
   return (
@@ -42,7 +40,6 @@ export default function LiveChatOverlay({
               creatorAddress={creatorAddress}
               isBroadcaster={isBroadcaster}
               externalOpenDonation={onOpenGift}
-              externalOpenReactions={onOpenReactions}
             />
           </div>
         </div>

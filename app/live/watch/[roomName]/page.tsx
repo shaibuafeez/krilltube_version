@@ -12,6 +12,7 @@ import EmojiReactions from '@/components/EmojiReactions';
 import { Header } from '@/components/Header';
 import MobileStreamMenu from '@/components/MobileStreamMenu';
 import MeetStyleControls from '@/components/MeetStyleControls';
+import EmojiReactionPicker from '@/components/EmojiReactionPicker';
 
 // Wrapper component to access LiveKit context
 function StreamContent({
@@ -29,18 +30,13 @@ function StreamContent({
 }) {
   const participants = useParticipants();
   const viewerCount = participants.length;
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   console.log('[Watch] Participants:', participants.length, 'Viewer count:', viewerCount);
 
   const handleOpenGift = () => {
     if ((window as any).__openDonationModal) {
       (window as any).__openDonationModal();
-    }
-  };
-
-  const handleOpenReactions = () => {
-    if ((window as any).__toggleEmojiPanel) {
-      (window as any).__toggleEmojiPanel();
     }
   };
 
@@ -64,16 +60,23 @@ function StreamContent({
           onLeave={() => window.location.href = '/'}
           isBroadcaster={false}
           onOpenGift={handleOpenGift}
-          onOpenReactions={handleOpenReactions}
           isChatOpen={isChatOpen}
           onToggleChat={() => setIsChatOpen(!isChatOpen)}
+          streamId={streamInfo?.id || ''}
         />
       )}
 
       {/* Chat Toggle Button for Viewers (non-co-hosts) */}
       {userRole === 'viewer' && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
-          <div className="flex items-center gap-2 px-4 py-2 bg-[#202124] rounded-full shadow-lg border border-gray-700/50">
+          {/* Emoji Reaction Picker */}
+          <EmojiReactionPicker
+            streamId={streamInfo?.id || ''}
+            isOpen={isEmojiPickerOpen}
+            onClose={() => setIsEmojiPickerOpen(false)}
+          />
+
+          <div className="flex items-center gap-2 px-4 py-2 bg-[#202124] rounded-full shadow-lg border border-gray-700/50 relative">
             <button
               onClick={() => setIsChatOpen(!isChatOpen)}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
@@ -90,8 +93,12 @@ function StreamContent({
 
             {/* Reactions Button */}
             <button
-              onClick={handleOpenReactions}
-              className="w-10 h-10 rounded-full bg-[#3c4043] hover:bg-[#5f6368] flex items-center justify-center transition-all text-white"
+              onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
+                ${isEmojiPickerOpen
+                  ? 'bg-[#1a73e8] hover:bg-[#1765cc] text-white'
+                  : 'bg-[#3c4043] hover:bg-[#5f6368] text-white'
+                }`}
               title="React with emoji"
             >
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -120,7 +127,6 @@ function StreamContent({
         creatorAddress={streamInfo?.creatorId || ''}
         isBroadcaster={false}
         onOpenGift={handleOpenGift}
-        onOpenReactions={handleOpenReactions}
         isChatOpen={isChatOpen}
       />
 

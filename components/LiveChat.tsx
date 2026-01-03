@@ -20,19 +20,16 @@ interface LiveChatProps {
   streamId: string;
   creatorAddress: string;
   externalOpenDonation?: () => void;
-  externalOpenReactions?: () => void;
 }
 
 const EMOJI_OPTIONS = ['❤️', '👍', '😂', '🔥', '🎉', '😮', '👏', '💯'];
 
-export default function LiveChat({ roomName, isBroadcaster = false, streamId, creatorAddress, externalOpenDonation, externalOpenReactions }: LiveChatProps) {
+export default function LiveChat({ roomName, isBroadcaster = false, streamId, creatorAddress, externalOpenDonation }: LiveChatProps) {
   const currentAccount = useCurrentAccount();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
-  const [showEmojiPanel, setShowEmojiPanel] = useState(false);
-  const [isSendingReaction, setIsSendingReaction] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -50,14 +47,10 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
     if (externalOpenDonation) {
       (window as any).__openDonationModal = () => setIsDonationModalOpen(true);
     }
-    if (externalOpenReactions) {
-      (window as any).__toggleEmojiPanel = () => setShowEmojiPanel(prev => !prev);
-    }
     return () => {
       delete (window as any).__openDonationModal;
-      delete (window as any).__toggleEmojiPanel;
     };
-  }, [externalOpenDonation, externalOpenReactions]);
+  }, [externalOpenDonation]);
 
   // Fetch existing messages on mount and poll for updates
   useEffect(() => {
@@ -149,33 +142,6 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
     // The Super Chat message will appear via polling
   };
 
-  const sendReaction = async (emoji: string) => {
-    if (!currentAccount?.address || isSendingReaction) return;
-
-    setIsSendingReaction(true);
-    setShowEmojiPanel(false);
-
-    try {
-      const response = await fetch('/api/live/reactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          streamId,
-          userId: currentAccount.address,
-          emoji,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send reaction');
-      }
-    } catch (err) {
-      console.error('[LiveChat] Send reaction error:', err);
-    } finally {
-      setIsSendingReaction(false);
-    }
-  };
-
   // Generate avatar shade from userId (black and white)
   const getAvatarColor = (userId: string) => {
     const colors = [
@@ -263,41 +229,7 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
       </div>
 
       {/* Message Input - Zoom Style */}
-      <div className="px-4 pb-4 pt-2 border-t border-gray-700 relative">
-        {/* Emoji Picker Panel - Appears above input */}
-        {showEmojiPanel && (
-          <div className="absolute bottom-full left-2 mb-2 bg-white rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black z-10">
-            {/* Header with close button */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200">
-              <span className="text-xs font-semibold text-gray-700 font-['Outfit']">React</span>
-              <button
-                onClick={() => setShowEmojiPanel(false)}
-                className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center"
-                title="Close"
-              >
-                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            {/* Emoji grid */}
-            <div className="p-2">
-              <div className="grid grid-cols-4 gap-1">
-                {EMOJI_OPTIONS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => sendReaction(emoji)}
-                    disabled={isSendingReaction}
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-all flex items-center justify-center text-xl"
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
+      <div className="px-4 pb-4 pt-2 border-t border-gray-700">
         <div className="flex gap-2">
           <input
             type="text"

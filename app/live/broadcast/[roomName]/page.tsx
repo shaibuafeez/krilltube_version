@@ -35,12 +35,6 @@ function BroadcastContent({
 
   console.log('[Broadcast] Participants:', participants.length, 'Viewer count:', viewerCount);
 
-  const handleOpenReactions = () => {
-    if ((window as any).__toggleEmojiPanel) {
-      (window as any).__toggleEmojiPanel();
-    }
-  };
-
   return (
     <>
       {/* Mobile Hamburger Menu - Only on mobile */}
@@ -59,9 +53,9 @@ function BroadcastContent({
       <MeetStyleControls
         onLeave={handleEndStream}
         isBroadcaster={true}
-        onOpenReactions={handleOpenReactions}
         isChatOpen={isChatOpen}
         onToggleChat={() => setIsChatOpen(!isChatOpen)}
+        streamId={streamInfo?.id || ''}
       />
 
       {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
@@ -70,7 +64,6 @@ function BroadcastContent({
         streamId={streamInfo?.id || ''}
         creatorAddress={streamInfo?.creatorId || ''}
         isBroadcaster={true}
-        onOpenReactions={handleOpenReactions}
         isChatOpen={isChatOpen}
       />
 
