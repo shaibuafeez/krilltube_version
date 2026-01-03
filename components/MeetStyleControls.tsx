@@ -67,14 +67,14 @@ export default function MeetStyleControls({
 
   return (
     <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
-      <div className="flex items-center gap-3 px-6 py-3 bg-gray-900/90 backdrop-blur-md rounded-full">
+      <div className="flex items-center gap-4 px-8 py-4 bg-[#202124] rounded-full shadow-lg border border-gray-700/50">
         {/* Microphone Toggle */}
         <button
           onClick={toggleMicrophone}
-          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all
             ${isMicEnabled
-              ? 'bg-gray-700 hover:bg-gray-600'
-              : 'bg-red-600 hover:bg-red-500'
+              ? 'bg-[#3c4043] hover:bg-[#5f6368] text-white'
+              : 'bg-[#ea4335] hover:bg-[#d93025] text-white'
             }`}
           title={isMicEnabled ? 'Mute microphone' : 'Unmute microphone'}
         >
@@ -94,10 +94,10 @@ export default function MeetStyleControls({
         {/* Camera Toggle */}
         <button
           onClick={toggleCamera}
-          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all
             ${isCameraEnabled
-              ? 'bg-gray-700 hover:bg-gray-600'
-              : 'bg-red-600 hover:bg-red-500'
+              ? 'bg-[#3c4043] hover:bg-[#5f6368] text-white'
+              : 'bg-[#ea4335] hover:bg-[#d93025] text-white'
             }`}
           title={isCameraEnabled ? 'Turn off camera' : 'Turn on camera'}
         >
@@ -116,10 +116,10 @@ export default function MeetStyleControls({
         {/* Screen Share Toggle */}
         <button
           onClick={toggleScreenShare}
-          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all
             ${isScreenSharing
-              ? 'bg-blue-600 hover:bg-blue-500'
-              : 'bg-gray-700 hover:bg-gray-600'
+              ? 'bg-[#1a73e8] hover:bg-[#1765cc] text-white'
+              : 'bg-[#3c4043] hover:bg-[#5f6368] text-white'
             }`}
           title={isScreenSharing ? 'Stop sharing screen' : 'Share screen'}
         >
@@ -129,12 +129,12 @@ export default function MeetStyleControls({
         </button>
 
         {/* Divider */}
-        <div className="w-px h-8 bg-gray-700" />
+        <div className="w-px h-10 bg-gray-700/50" />
 
         {/* Leave/End Stream Button */}
         <button
           onClick={onLeave}
-          className="w-12 h-12 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center transition-all"
+          className="w-14 h-14 rounded-full bg-[#ea4335] hover:bg-[#d93025] flex items-center justify-center transition-all text-white"
           title={isBroadcaster ? 'End stream' : 'Leave stream'}
         >
           <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
