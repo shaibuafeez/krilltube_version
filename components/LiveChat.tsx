@@ -180,14 +180,11 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
   };
 
   return (
-    <div className="h-full flex flex-col gap-2">
-
-      {/* No header - TikTok Live style */}
-
-      {/* Messages Container - TikTok Live Style */}
+    <div className="h-full flex flex-col">
+      {/* Messages Container - Zoom Style */}
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto space-y-1.5 flex flex-col justify-end"
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-2"
       >
         {messages.length === 0 ? (
           <div className="flex items-center justify-center py-4 hidden md:flex">
@@ -249,8 +246,8 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input - TikTok Live Style */}
-      <div className="p-2 relative">
+      {/* Message Input - Zoom Style */}
+      <div className="px-4 pb-4 pt-2 border-t border-gray-700 relative">
         {/* Emoji Picker Panel - Appears above input */}
         {showEmojiPanel && (
           <div className="absolute bottom-full left-2 mb-2 bg-white rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black z-10">
@@ -285,77 +282,84 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
           </div>
         )}
 
-        <div className="flex gap-1.5">
-          <input
-            type="text"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            placeholder={
-              currentAccount?.address
-                ? 'Add comment...'
-                : 'Connect wallet to chat'
-            }
-            disabled={!currentAccount?.address || isLoading}
-            maxLength={500}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendMessage(e as any);
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              placeholder={
+                currentAccount?.address
+                  ? 'Type a message...'
+                  : 'Connect wallet to chat'
               }
-            }}
-            className="flex-1 px-4 py-2.5 bg-gray-800/80 backdrop-blur-sm rounded-full
-              text-white placeholder-white/60
-              outline-none text-sm font-medium font-['Outfit']
-              disabled:opacity-50 disabled:cursor-not-allowed
-              focus:bg-gray-800/90 transition-colors"
-          />
+              disabled={!currentAccount?.address || isLoading}
+              maxLength={500}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(e as any);
+                }
+              }}
+              className="flex-1 px-3 py-2 bg-[#2d2d2f] rounded-lg
+                text-white placeholder-white/50 text-sm
+                outline-none font-['Outfit']
+                disabled:opacity-50 disabled:cursor-not-allowed
+                focus:ring-2 focus:ring-blue-500 transition-all"
+            />
 
-          {/* Send Button */}
-          <button
-            type="button"
-            onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || isLoading || !currentAccount?.address}
-            className="px-4 py-2.5 flex-shrink-0 bg-pink-500/90 backdrop-blur-sm rounded-full
-              text-white font-semibold font-['Outfit'] text-sm
-              hover:bg-pink-500
-              disabled:opacity-50 disabled:cursor-not-allowed
-              transition-colors"
-          >
-            {isLoading ? '...' : 'Send'}
-          </button>
-
-          {/* Gift Icon Button - Only show for viewers, not broadcaster */}
-          {!isBroadcaster && (
+            {/* Send Button */}
             <button
               type="button"
-              onClick={() => setIsDonationModalOpen(true)}
+              onClick={handleSendMessage}
+              disabled={!inputMessage.trim() || isLoading || !currentAccount?.address}
+              className="px-4 py-2 flex-shrink-0 bg-[#1a73e8] hover:bg-[#1765cc] rounded-lg
+                text-white font-semibold font-['Outfit'] text-sm
+                disabled:opacity-50 disabled:cursor-not-allowed
+                transition-colors"
+            >
+              {isLoading ? '...' : 'Send'}
+            </button>
+          </div>
+
+          {/* Action Buttons Row */}
+          <div className="flex gap-2">
+            {/* Gift Icon Button - Only show for viewers, not broadcaster */}
+            {!isBroadcaster && (
+              <button
+                type="button"
+                onClick={() => setIsDonationModalOpen(true)}
+                disabled={!currentAccount?.address}
+                className="flex-1 px-3 py-2 bg-[#2d2d2f] hover:bg-[#3d3d3f] rounded-lg
+                  flex items-center justify-center gap-2
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  transition-all"
+                title="Send Gift"
+              >
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                </svg>
+                <span className="text-white text-xs font-medium font-['Outfit']">Gift</span>
+              </button>
+            )}
+
+            {/* Emoji Reaction Button */}
+            <button
+              type="button"
+              onClick={() => setShowEmojiPanel(!showEmojiPanel)}
               disabled={!currentAccount?.address}
-              className="w-10 h-10 flex-shrink-0 bg-white/50
-                backdrop-blur-sm rounded-full
-                flex items-center justify-center
-                hover:bg-white/70
+              className="flex-1 px-3 py-2 bg-[#2d2d2f] hover:bg-[#3d3d3f] rounded-lg
+                flex items-center justify-center gap-2
                 disabled:opacity-50 disabled:cursor-not-allowed
                 transition-all"
-              title="Send Gift"
+              title="React with emoji"
             >
-              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
+              <span className="text-white text-xs font-medium font-['Outfit']">React</span>
             </button>
-          )}
-
-          {/* Emoji Reaction Button - After Gift button */}
-          <button
-            type="button"
-            onClick={() => setShowEmojiPanel(!showEmojiPanel)}
-            disabled={!currentAccount?.address}
-            className="w-10 h-10 flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            title="React with emoji"
-          >
-            <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </button>
+          </div>
         </div>
       </div>
 
