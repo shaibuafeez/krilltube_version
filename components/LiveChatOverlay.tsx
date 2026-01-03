@@ -8,6 +8,8 @@ interface LiveChatOverlayProps {
   streamId: string;
   creatorAddress: string;
   isBroadcaster: boolean;
+  onOpenGift?: () => void;
+  onOpenReactions?: () => void;
 }
 
 export default function LiveChatOverlay({
@@ -15,6 +17,8 @@ export default function LiveChatOverlay({
   streamId,
   creatorAddress,
   isBroadcaster,
+  onOpenGift,
+  onOpenReactions,
 }: LiveChatOverlayProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
@@ -63,6 +67,8 @@ export default function LiveChatOverlay({
               streamId={streamId}
               creatorAddress={creatorAddress}
               isBroadcaster={isBroadcaster}
+              externalOpenDonation={onOpenGift}
+              externalOpenReactions={onOpenReactions}
             />
           </div>
         </div>
@@ -70,3 +76,4 @@ export default function LiveChatOverlay({
     </>
   );
 }
+

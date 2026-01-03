@@ -25,6 +25,8 @@ function StreamContent({
 }) {
   const participants = useParticipants();
   const viewerCount = participants.length;
+  const [showGift, setShowGift] = useState(false);
+  const [showReactions, setShowReactions] = useState(false);
 
   console.log('[Watch] Participants:', participants.length, 'Viewer count:', viewerCount);
 
@@ -47,6 +49,8 @@ function StreamContent({
         <MeetStyleControls
           onLeave={() => window.location.href = '/'}
           isBroadcaster={false}
+          onOpenGift={() => setShowGift(true)}
+          onOpenReactions={() => setShowReactions(true)}
         />
       )}
 
@@ -56,6 +60,8 @@ function StreamContent({
         streamId={streamInfo?.id || ''}
         creatorAddress={streamInfo?.creatorId || ''}
         isBroadcaster={false}
+        onOpenGift={() => setShowGift(true)}
+        onOpenReactions={() => setShowReactions(true)}
       />
 
       {/* Viewer Participation - Request to Join Stream */}
