@@ -33,9 +33,9 @@ export default function MeetStyleControls({
   const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   const tracks = useTracks([
-    { source: Track.Source.Camera },
-    { source: Track.Source.Microphone },
-    { source: Track.Source.ScreenShare },
+    Track.Source.Camera,
+    Track.Source.Microphone,
+    Track.Source.ScreenShare,
   ]);
 
   // Sync state with actual track status
