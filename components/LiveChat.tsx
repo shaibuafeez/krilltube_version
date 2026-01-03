@@ -45,6 +45,20 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
     scrollToBottom();
   }, [messages]);
 
+  // Expose functions to external handlers
+  useEffect(() => {
+    if (externalOpenDonation) {
+      (window as any).__openDonationModal = () => setIsDonationModalOpen(true);
+    }
+    if (externalOpenReactions) {
+      (window as any).__toggleEmojiPanel = () => setShowEmojiPanel(prev => !prev);
+    }
+    return () => {
+      delete (window as any).__openDonationModal;
+      delete (window as any).__toggleEmojiPanel;
+    };
+  }, [externalOpenDonation, externalOpenReactions]);
+
   // Fetch existing messages on mount and poll for updates
   useEffect(() => {
     const fetchMessages = async () => {

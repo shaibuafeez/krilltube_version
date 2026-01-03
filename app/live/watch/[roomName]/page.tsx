@@ -25,10 +25,20 @@ function StreamContent({
 }) {
   const participants = useParticipants();
   const viewerCount = participants.length;
-  const [showGift, setShowGift] = useState(false);
-  const [showReactions, setShowReactions] = useState(false);
 
   console.log('[Watch] Participants:', participants.length, 'Viewer count:', viewerCount);
+
+  const handleOpenGift = () => {
+    if ((window as any).__openDonationModal) {
+      (window as any).__openDonationModal();
+    }
+  };
+
+  const handleOpenReactions = () => {
+    if ((window as any).__toggleEmojiPanel) {
+      (window as any).__toggleEmojiPanel();
+    }
+  };
 
   return (
     <>
@@ -49,8 +59,8 @@ function StreamContent({
         <MeetStyleControls
           onLeave={() => window.location.href = '/'}
           isBroadcaster={false}
-          onOpenGift={() => setShowGift(true)}
-          onOpenReactions={() => setShowReactions(true)}
+          onOpenGift={handleOpenGift}
+          onOpenReactions={handleOpenReactions}
         />
       )}
 
@@ -60,8 +70,8 @@ function StreamContent({
         streamId={streamInfo?.id || ''}
         creatorAddress={streamInfo?.creatorId || ''}
         isBroadcaster={false}
-        onOpenGift={() => setShowGift(true)}
-        onOpenReactions={() => setShowReactions(true)}
+        onOpenGift={handleOpenGift}
+        onOpenReactions={handleOpenReactions}
       />
 
       {/* Viewer Participation - Request to Join Stream */}

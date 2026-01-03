@@ -28,10 +28,14 @@ function BroadcastContent({
 }) {
   const participants = useParticipants();
   const viewerCount = participants.length;
-  const [showGift, setShowGift] = useState(false);
-  const [showReactions, setShowReactions] = useState(false);
 
   console.log('[Broadcast] Participants:', participants.length, 'Viewer count:', viewerCount);
+
+  const handleOpenReactions = () => {
+    if ((window as any).__toggleEmojiPanel) {
+      (window as any).__toggleEmojiPanel();
+    }
+  };
 
   return (
     <>
@@ -51,7 +55,7 @@ function BroadcastContent({
       <MeetStyleControls
         onLeave={handleEndStream}
         isBroadcaster={true}
-        onOpenReactions={() => setShowReactions(true)}
+        onOpenReactions={handleOpenReactions}
       />
 
       {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
@@ -60,7 +64,7 @@ function BroadcastContent({
         streamId={streamInfo?.id || ''}
         creatorAddress={streamInfo?.creatorId || ''}
         isBroadcaster={true}
-        onOpenReactions={() => setShowReactions(true)}
+        onOpenReactions={handleOpenReactions}
       />
 
       {/* Invitation Notifications - Inside video screen */}
