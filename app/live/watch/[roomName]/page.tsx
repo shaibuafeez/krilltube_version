@@ -120,16 +120,6 @@ function StreamContent({
         </div>
       )}
 
-      {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
-      <LiveChatOverlay
-        roomName={roomName}
-        streamId={streamInfo?.id || ''}
-        creatorAddress={streamInfo?.creatorId || ''}
-        isBroadcaster={false}
-        onOpenGift={handleOpenGift}
-        isChatOpen={isChatOpen}
-      />
-
       {/* Viewer Participation - Request to Join Stream */}
       <ViewerParticipation
         streamId={streamInfo?.id || ''}
@@ -317,11 +307,13 @@ export default function WatchStreamPage() {
         </div>
 
         {/* Live Stream Video with Overlay Chat */}
-        <div className="relative">
-          <div className="sm:rounded-[32px] overflow-hidden
+        <div className="relative flex gap-0">
+          {/* Video Container - Shrinks when chat is open */}
+          <div className={`sm:rounded-[32px] overflow-hidden
             sm:shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
             sm:outline sm:outline-[3px] sm:outline-offset-[-3px] sm:outline-black
-            bg-black h-screen sm:h-[calc(100vh-200px)]">
+            bg-black h-screen sm:h-[calc(100vh-200px)] transition-all duration-300
+            ${isChatOpen ? 'w-full sm:w-[calc(100%-384px)]' : 'w-full'}`}>
 
             {/* Inner container to keep all absolute elements inside */}
             <div className="relative w-full h-full">
@@ -358,6 +350,18 @@ export default function WatchStreamPage() {
                 />
               </LiveKitRoom>
             </div>
+          </div>
+
+          {/* Chat Panel - Fixed position on right */}
+          <div className={`${isChatOpen ? 'w-full sm:w-96' : 'w-0'} transition-all duration-300 overflow-hidden`}>
+            <LiveChatOverlay
+              roomName={roomName}
+              streamId={streamInfo?.id || ''}
+              creatorAddress={streamInfo?.creatorId || ''}
+              isBroadcaster={false}
+              onOpenGift={(window as any).__openDonationModal}
+              isChatOpen={isChatOpen}
+            />
           </div>
         </div>
       </div>
