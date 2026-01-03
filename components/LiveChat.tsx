@@ -22,8 +22,6 @@ interface LiveChatProps {
   externalOpenDonation?: () => void;
 }
 
-const EMOJI_OPTIONS = ['❤️', '👍', '😂', '🔥', '🎉', '😮', '👏', '💯'];
-
 export default function LiveChat({ roomName, isBroadcaster = false, streamId, creatorAddress, externalOpenDonation }: LiveChatProps) {
   const currentAccount = useCurrentAccount();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
