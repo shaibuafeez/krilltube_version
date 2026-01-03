@@ -20,11 +20,15 @@ function BroadcastContent({
   currentAccount,
   roomName,
   handleEndStream,
+  isChatOpen,
+  setIsChatOpen,
 }: {
   streamInfo: any;
   currentAccount: any;
   roomName: string;
   handleEndStream: () => void;
+  isChatOpen: boolean;
+  setIsChatOpen: (open: boolean) => void;
 }) {
   const participants = useParticipants();
   const viewerCount = participants.length;
@@ -56,6 +60,8 @@ function BroadcastContent({
         onLeave={handleEndStream}
         isBroadcaster={true}
         onOpenReactions={handleOpenReactions}
+        isChatOpen={isChatOpen}
+        onToggleChat={() => setIsChatOpen(!isChatOpen)}
       />
 
       {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
@@ -65,6 +71,7 @@ function BroadcastContent({
         creatorAddress={streamInfo?.creatorId || ''}
         isBroadcaster={true}
         onOpenReactions={handleOpenReactions}
+        isChatOpen={isChatOpen}
       />
 
       {/* Invitation Notifications - Inside video screen */}
@@ -89,6 +96,7 @@ export default function BroadcastPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [streamInfo, setStreamInfo] = useState<any>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     if (!currentAccount?.address || !roomName) {
@@ -247,6 +255,8 @@ export default function BroadcastPage() {
                   currentAccount={currentAccount}
                   roomName={roomName}
                   handleEndStream={handleEndStream}
+                  isChatOpen={isChatOpen}
+                  setIsChatOpen={setIsChatOpen}
                 />
               </LiveKitRoom>
             </div>

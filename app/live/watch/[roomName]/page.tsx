@@ -18,10 +18,14 @@ function StreamContent({
   streamInfo,
   userRole,
   roomName,
+  isChatOpen,
+  setIsChatOpen,
 }: {
   streamInfo: any;
   userRole: 'viewer' | 'co-host';
   roomName: string;
+  isChatOpen: boolean;
+  setIsChatOpen: (open: boolean) => void;
 }) {
   const participants = useParticipants();
   const viewerCount = participants.length;
@@ -61,7 +65,52 @@ function StreamContent({
           isBroadcaster={false}
           onOpenGift={handleOpenGift}
           onOpenReactions={handleOpenReactions}
+          isChatOpen={isChatOpen}
+          onToggleChat={() => setIsChatOpen(!isChatOpen)}
         />
+      )}
+
+      {/* Chat Toggle Button for Viewers (non-co-hosts) */}
+      {userRole === 'viewer' && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
+          <div className="flex items-center gap-2 px-4 py-2 bg-[#202124] rounded-full shadow-lg border border-gray-700/50">
+            <button
+              onClick={() => setIsChatOpen(!isChatOpen)}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
+                ${isChatOpen
+                  ? 'bg-[#1a73e8] hover:bg-[#1765cc] text-white'
+                  : 'bg-[#3c4043] hover:bg-[#5f6368] text-white'
+                }`}
+              title={isChatOpen ? 'Close chat' : 'Open chat'}
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </button>
+
+            {/* Reactions Button */}
+            <button
+              onClick={handleOpenReactions}
+              className="w-10 h-10 rounded-full bg-[#3c4043] hover:bg-[#5f6368] flex items-center justify-center transition-all text-white"
+              title="React with emoji"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+
+            {/* Gift Button */}
+            <button
+              onClick={handleOpenGift}
+              className="w-10 h-10 rounded-full bg-[#3c4043] hover:bg-[#5f6368] flex items-center justify-center transition-all text-white"
+              title="Send Gift"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              </svg>
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
@@ -72,6 +121,7 @@ function StreamContent({
         isBroadcaster={false}
         onOpenGift={handleOpenGift}
         onOpenReactions={handleOpenReactions}
+        isChatOpen={isChatOpen}
       />
 
       {/* Viewer Participation - Request to Join Stream */}
@@ -106,6 +156,7 @@ export default function WatchStreamPage() {
   const [streamInfo, setStreamInfo] = useState<any>(null);
   const [userRole, setUserRole] = useState<'viewer' | 'co-host'>('viewer');
   const [isRefreshingToken, setIsRefreshingToken] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   useEffect(() => {
     if (!currentAccount?.address || !roomName) {
@@ -296,6 +347,8 @@ export default function WatchStreamPage() {
                   streamInfo={streamInfo}
                   userRole={userRole}
                   roomName={roomName}
+                  isChatOpen={isChatOpen}
+                  setIsChatOpen={setIsChatOpen}
                 />
               </LiveKitRoom>
             </div>
