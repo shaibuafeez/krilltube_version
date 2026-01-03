@@ -226,9 +226,9 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input - Zoom Style */}
-      <div className="px-4 pb-4 pt-2 border-t border-gray-700">
-        <div className="flex gap-2">
+      {/* Message Input - Modern Google Meet Style */}
+      <div className="px-4 pb-6 pt-3 border-t border-gray-700/50 sm:pb-7">
+        <div className="flex gap-2.5">
           <input
             type="text"
             value={inputMessage}
@@ -246,11 +246,12 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
                 handleSendMessage(e as any);
               }
             }}
-            className="flex-1 px-3 py-2 bg-[#2d2d2f] rounded-lg
+            className="flex-1 px-4 py-3.5 bg-[#2d2d2f] rounded-full
               text-white placeholder-white/50 text-sm
-              outline-none font-['Outfit']
+              outline-none font-['Outfit'] font-medium
               disabled:opacity-50 disabled:cursor-not-allowed
-              focus:ring-2 focus:ring-blue-500 transition-all"
+              focus:ring-2 focus:ring-[#1a73e8]/50 focus:bg-[#353537]
+              transition-all h-12"
           />
 
           {/* Send Button */}
@@ -258,12 +259,19 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
             type="button"
             onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isLoading || !currentAccount?.address}
-            className="px-4 py-2 shrink-0 bg-[#1a73e8] hover:bg-[#1765cc] rounded-lg
-              text-white font-semibold font-['Outfit'] text-sm
+            className="w-12 h-12 shrink-0 bg-[#1a73e8] hover:bg-[#1765cc] rounded-full
+              flex items-center justify-center
               disabled:opacity-50 disabled:cursor-not-allowed
-              transition-colors"
+              transition-all"
+            title="Send message"
           >
-            {isLoading ? '...' : 'Send'}
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+              </svg>
+            )}
           </button>
         </div>
       </div>

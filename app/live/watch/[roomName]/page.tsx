@@ -21,12 +21,16 @@ function StreamContent({
   roomName,
   isChatOpen,
   setIsChatOpen,
+  viewMode,
+  setViewMode,
 }: {
   streamInfo: any;
   userRole: 'viewer' | 'co-host';
   roomName: string;
   isChatOpen: boolean;
   setIsChatOpen: (open: boolean) => void;
+  viewMode: 'speaker' | 'grid';
+  setViewMode: (mode: 'speaker' | 'grid') => void;
 }) {
   const participants = useParticipants();
   const viewerCount = participants.length;
@@ -52,7 +56,11 @@ function StreamContent({
         isBroadcaster={false}
       />
 
-      <LiveStreamPlayer isBroadcaster={userRole === 'co-host'} />
+      <LiveStreamPlayer
+        isBroadcaster={userRole === 'co-host'}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
       {/* Google Meet Style Controls - Show when promoted to co-host */}
       {userRole === 'co-host' && (
@@ -63,6 +71,8 @@ function StreamContent({
           isChatOpen={isChatOpen}
           onToggleChat={() => setIsChatOpen(!isChatOpen)}
           streamId={streamInfo?.id || ''}
+          viewMode={viewMode}
+          onToggleViewMode={() => setViewMode(viewMode === 'grid' ? 'speaker' : 'grid')}
         />
       )}
 
@@ -77,6 +87,30 @@ function StreamContent({
           />
 
           <div className="flex items-center gap-2 px-4 py-2 bg-[#202124] rounded-full shadow-lg border border-gray-700/50 relative">
+            {/* Grid/Speaker View Toggle */}
+            <button
+              onClick={() => setViewMode(viewMode === 'grid' ? 'speaker' : 'grid')}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
+                ${viewMode === 'grid'
+                  ? 'bg-[#1a73e8] hover:bg-[#1765cc] text-white'
+                  : 'bg-[#3c4043] hover:bg-[#5f6368] text-white'
+                }`}
+              title={viewMode === 'grid' ? 'Switch to speaker view' : 'Switch to grid view'}
+            >
+              {viewMode === 'grid' ? (
+                /* Speaker View Icon */
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              ) : (
+                /* Grid View Icon */
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                </svg>
+              )}
+            </button>
+
+            {/* Chat Toggle */}
             <button
               onClick={() => setIsChatOpen(!isChatOpen)}
               className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
@@ -153,6 +187,7 @@ export default function WatchStreamPage() {
   const [userRole, setUserRole] = useState<'viewer' | 'co-host'>('viewer');
   const [isRefreshingToken, setIsRefreshingToken] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'speaker' | 'grid'>('speaker');
 
   useEffect(() => {
     if (!currentAccount?.address || !roomName) {
@@ -309,11 +344,11 @@ export default function WatchStreamPage() {
         {/* Live Stream Video with Overlay Chat */}
         <div className="relative flex gap-0">
           {/* Video Container - Shrinks when chat is open */}
-          <div className={`sm:rounded-[32px] overflow-hidden
+          <div className={`overflow-hidden
             sm:shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
             sm:outline sm:outline-[3px] sm:outline-offset-[-3px] sm:outline-black
             bg-black h-screen sm:h-[calc(100vh-200px)] transition-all duration-300
-            ${isChatOpen ? 'w-full sm:w-[calc(100%-384px)]' : 'w-full'}`}>
+            ${isChatOpen ? 'w-full sm:w-[calc(100%-384px)] sm:rounded-l-[32px]' : 'w-full sm:rounded-[32px]'}`}>
 
             {/* Inner container to keep all absolute elements inside */}
             <div className="relative w-full h-full">
@@ -347,13 +382,15 @@ export default function WatchStreamPage() {
                   roomName={roomName}
                   isChatOpen={isChatOpen}
                   setIsChatOpen={setIsChatOpen}
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
                 />
               </LiveKitRoom>
             </div>
           </div>
 
           {/* Chat Panel - Fixed position on right */}
-          <div className={`${isChatOpen ? 'w-full sm:w-96' : 'w-0'} transition-all duration-300 overflow-hidden`}>
+          <div className={`h-screen sm:h-[calc(100vh-200px)] sm:shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)] sm:outline sm:outline-[3px] sm:outline-offset-[-3px] sm:outline-black rounded-bl-[32px] sm:rounded-bl-none sm:rounded-r-[32px] ${isChatOpen ? 'w-full sm:w-96' : 'w-0'} transition-all duration-300 overflow-hidden`}>
             <LiveChatOverlay
               roomName={roomName}
               streamId={streamInfo?.id || ''}

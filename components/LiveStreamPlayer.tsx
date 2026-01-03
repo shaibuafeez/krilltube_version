@@ -9,16 +9,25 @@ import {
   useParticipants
 } from '@livekit/components-react';
 import { Track, RemoteTrack, RemoteVideoTrack, RemoteAudioTrack, Participant } from 'livekit-client';
+import ParticipantGridView from './ParticipantGridView';
+import ParticipantSidebar from './ParticipantSidebar';
 
 interface LiveStreamPlayerProps {
   isBroadcaster: boolean;
+  viewMode?: 'speaker' | 'grid';
+  onViewModeChange?: (mode: 'speaker' | 'grid') => void;
 }
 
-export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProps) {
+export default function LiveStreamPlayer({
+  isBroadcaster,
+  viewMode = 'speaker',
+  onViewModeChange
+}: LiveStreamPlayerProps) {
   const [broadcasterVideoTrack, setBroadcasterVideoTrack] = useState<TrackReferenceOrPlaceholder | null>(null);
   const [broadcasterAudioTrack, setBroadcasterAudioTrack] = useState<TrackReferenceOrPlaceholder | null>(null);
   const [pinnedParticipantId, setPinnedParticipantId] = useState<string | null>(null);
   const [activeSpeakerId, setActiveSpeakerId] = useState<string | null>(null);
+  const [isParticipantSidebarOpen, setIsParticipantSidebarOpen] = useState(false);
 
   // Get all participants in the room
   const participants = useParticipants();
@@ -72,6 +81,43 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
     }
   }, [videoTracks, audioTracks, isBroadcaster]);
 
+  // Handler for participant click (pin/unpin)
+  const handleParticipantClick = (participantId: string) => {
+    if (pinnedParticipantId === participantId) {
+      // Unpin if clicking the same participant
+      setPinnedParticipantId(null);
+      // Switch back to speaker view when unpinning
+      if (viewMode === 'grid' && onViewModeChange) {
+        onViewModeChange('speaker');
+      }
+    } else {
+      // Pin the selected participant
+      setPinnedParticipantId(participantId);
+      // Switch to speaker view to focus on the pinned participant
+      if (viewMode === 'grid' && onViewModeChange) {
+        onViewModeChange('speaker');
+      }
+    }
+  };
+
+  // Handler for sidebar participant selection
+  const handleSidebarSelect = (participantId: string) => {
+    setPinnedParticipantId(participantId);
+    // Switch to speaker view when selecting from sidebar
+    if (viewMode === 'grid' && onViewModeChange) {
+      onViewModeChange('speaker');
+    }
+  };
+
+  // Combine all tracks for grid view (camera + screen share)
+  const allGridTracks = [...videoTracks, ...screenShareTracks].filter(track => track.publication);
+
+  // Debug logging
+  console.log('[LiveStreamPlayer] RENDER - viewMode:', viewMode);
+  console.log('[LiveStreamPlayer] RENDER - allGridTracks count:', allGridTracks.length);
+  console.log('[LiveStreamPlayer] RENDER - isBroadcaster:', isBroadcaster);
+  console.log('[LiveStreamPlayer] RENDER - Will show grid?', viewMode === 'grid');
+
   if (isBroadcaster) {
     // Broadcaster view - show their own camera preview or screen share + co-hosts
     const myVideoTrack = videoTracks.find(track => track.participant.isLocal);
@@ -113,8 +159,36 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
 
     return (
       <div className="relative w-full h-full bg-black overflow-hidden">
-        {/* Main video (screen share or camera) */}
-        {mainTrack && mainTrack.publication ? (
+        {/* Debug indicator - REMOVE AFTER TESTING */}
+        <div className="absolute top-20 left-4 z-50 bg-yellow-500 text-black px-4 py-2 rounded font-bold">
+          Mode: {viewMode} | Tracks: {allGridTracks.length}
+        </div>
+
+        {/* Participant Sidebar */}
+        <ParticipantSidebar
+          participants={participants}
+          videoTracks={videoTracks}
+          screenShareTracks={screenShareTracks}
+          onSelect={handleSidebarSelect}
+          selectedParticipantId={pinnedParticipantId}
+          activeSpeakerId={activeSpeakerId}
+          isOpen={isParticipantSidebarOpen}
+          onToggle={() => setIsParticipantSidebarOpen(!isParticipantSidebarOpen)}
+        />
+
+        {/* Grid View */}
+        {viewMode === 'grid' ? (
+          <ParticipantGridView
+            tracks={allGridTracks}
+            onParticipantClick={handleParticipantClick}
+            pinnedParticipantId={pinnedParticipantId}
+            activeSpeakerId={activeSpeakerId}
+          />
+        ) : (
+          /* Speaker View */
+          <>
+            {/* Main video (screen share or camera) */}
+            {mainTrack && mainTrack.publication ? (
           <VideoTrack
             trackRef={mainTrack}
             className="w-full h-full object-contain"
@@ -190,6 +264,8 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
             </div>
           </div>
         )}
+          </>
+        )}
       </div>
     );
   }
@@ -224,13 +300,36 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
-      {/* Main video (screen share or primary camera) */}
-      {mainTrack && mainTrack.publication ? (
-        <VideoTrack
-          trackRef={mainTrack}
-          className="w-full h-full object-contain"
+      {/* Participant Sidebar */}
+      <ParticipantSidebar
+        participants={participants}
+        videoTracks={videoTracks}
+        screenShareTracks={screenShareTracks}
+        onSelect={handleSidebarSelect}
+        selectedParticipantId={pinnedParticipantId}
+        activeSpeakerId={activeSpeakerId}
+        isOpen={isParticipantSidebarOpen}
+        onToggle={() => setIsParticipantSidebarOpen(!isParticipantSidebarOpen)}
+      />
+
+      {/* Grid View */}
+      {viewMode === 'grid' ? (
+        <ParticipantGridView
+          tracks={allGridTracks}
+          onParticipantClick={handleParticipantClick}
+          pinnedParticipantId={pinnedParticipantId}
+          activeSpeakerId={activeSpeakerId}
         />
       ) : (
+        /* Speaker View */
+        <>
+          {/* Main video (screen share or primary camera) */}
+          {mainTrack && mainTrack.publication ? (
+            <VideoTrack
+              trackRef={mainTrack}
+              className="w-full h-full object-contain"
+            />
+          ) : (
         <div className="w-full h-full flex items-center justify-center">
           <div className="text-center">
             <div className="inline-block w-16 h-16 border-4 border-white border-t-transparent rounded-full animate-spin mb-4" />
@@ -294,6 +393,8 @@ export default function LiveStreamPlayer({ isBroadcaster }: LiveStreamPlayerProp
             <span className="text-white text-xs font-medium font-['Outfit']">Presenting</span>
           </div>
         </div>
+      )}
+        </>
       )}
     </div>
   );

@@ -20,10 +20,10 @@ export default function LiveChatOverlay({
   isChatOpen,
 }: LiveChatOverlayProps) {
   return (
-    <div className="h-full bg-[#1c1c1e] flex flex-col">
+    <div className="h-full bg-[#1c1c1e] flex flex-col overflow-hidden">
       {/* Chat Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-        <h3 className="text-white text-sm font-semibold font-['Outfit']">Chat</h3>
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50">
+        <h3 className="text-white text-base font-bold font-['Outfit']">Chat</h3>
       </div>
 
       {/* Chat Content */}

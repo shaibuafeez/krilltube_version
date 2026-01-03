@@ -22,13 +22,12 @@ export default function ViewerParticipation({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Don't show for broadcasters or if participation is disabled
-  if (isBroadcaster || !allowParticipation || !currentAccount?.address) {
-    return null;
-  }
-
   // Poll participant status every 3 seconds
   useEffect(() => {
+    // Skip if conditions aren't met
+    if (isBroadcaster || !allowParticipation || !currentAccount?.address) {
+      return;
+    }
     const checkParticipantStatus = async () => {
       try {
         const response = await fetch(`/api/live/participants?streamId=${streamId}`);
@@ -53,7 +52,12 @@ export default function ViewerParticipation({
     const interval = setInterval(checkParticipantStatus, 3000);
 
     return () => clearInterval(interval);
-  }, [streamId, currentAccount?.address]);
+  }, [streamId, currentAccount?.address, isBroadcaster, allowParticipation]);
+
+  // Don't show for broadcasters or if participation is disabled
+  if (isBroadcaster || !allowParticipation || !currentAccount?.address) {
+    return null;
+  }
 
   const handleRaiseHand = async () => {
     if (!currentAccount?.address) return;
