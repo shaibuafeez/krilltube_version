@@ -1,164 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSidebarContext } from '@/lib/context/SidebarContext';
-
-// Star Rating Component
-const StarRating = ({ rating }: { rating: number }) => {
-  const fullStars = Math.floor(rating);
-
-  return (
-    <div className="flex flex-row items-center gap-2">
-      <div className="flex flex-row items-center gap-2">
-        {[...Array(5)].map((_, index) => (
-          <svg
-            key={index}
-            className="w-6 h-6"
-            viewBox="0 0 24 24"
-            fill={index < fullStars ? '#FFB836' : 'none'}
-            stroke="#FFB836"
-            strokeWidth={index < fullStars ? 0 : 1}
-          >
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-        ))}
-      </div>
-      <span className="text-black text-xl font-semibold font-['Outfit'] leading-[160%]">
-        {rating}
-      </span>
-    </div>
-  );
-};
-
-// Mock manga data - in a real app this would come from an API
-interface MangaData {
-  id: string;
-  title: string;
-  author: string;
-  tags: string[];
-  description: string;
-  rating: number;
-  coverImage: string;
-  chapters: Chapter[];
-}
-
-interface Chapter {
-  id: string;
-  number: number;
-  title: string;
-  pages: string[]; // Array of page image URLs
-}
-
-// Mock data
-const mockMangaData: MangaData = {
-  id: '1',
-  title: 'Adventures of the Yeti into the deep',
-  author: 'Matteo.sui',
-  tags: ['NFT', 'Action', 'Advemture', 'Shounen', 'Gaming'],
-  description: 'Bacon ipsum dolor amet prosciutto boudin tail landjaeger, tongue tenderloin turducken sirloin fatback biltong t-bone cow short loin ribeye chicken. Drumstick tongue pig tail. Filet mignon bresaola venison salami, tail beef fatback cow picanha pork.',
-  rating: 4.5,
-  coverImage: '/manga/yeti.png',
-  chapters: [
-    {
-      id: '12',
-      number: 12,
-      title: 'Chapter 12',
-      pages: [
-        '/manga/chapter-page-1.png',
-        '/manga/chapter-page-2.png',
-        '/manga/chapter-page-3.png',
-        '/manga/chapter-page-4.jpg',
-        '/manga/chapter-page-5.jpg',
-        '/manga/chapter-page-6.jpg',
-        '/manga/chapter-page-7.jpg',
-        '/manga/chapter-page-8.jpg',
-        '/manga/chapter-page-9.jpg',
-        '/manga/chapter-page-10.jpg',
-      ]
-    },
-    {
-      id: '11',
-      number: 11,
-      title: 'Chapter 11',
-      pages: [
-        'https://picsum.photos/seed/manga11-1/800/1200',
-        'https://picsum.photos/seed/manga11-2/800/1200',
-        'https://picsum.photos/seed/manga11-3/800/1200',
-      ]
-    },
-    {
-      id: '10',
-      number: 10,
-      title: 'Chapter 10',
-      pages: [
-        'https://picsum.photos/seed/manga10-1/800/1200',
-        'https://picsum.photos/seed/manga10-2/800/1200',
-      ]
-    },
-    { id: '9', number: 9, title: 'Chapter 9', pages: ['https://picsum.photos/seed/manga9-1/800/1200'] },
-    { id: '8', number: 8, title: 'Chapter 8', pages: ['https://picsum.photos/seed/manga8-1/800/1200'] },
-    { id: '7', number: 7, title: 'Chapter 7', pages: ['https://picsum.photos/seed/manga7-1/800/1200'] },
-    { id: '6', number: 6, title: 'Chapter 6', pages: ['https://picsum.photos/seed/manga6-1/800/1200'] },
-    { id: '5', number: 5, title: 'Chapter 5', pages: ['https://picsum.photos/seed/manga5-1/800/1200'] },
-    { id: '4', number: 4, title: 'Chapter 4', pages: ['https://picsum.photos/seed/manga4-1/800/1200'] },
-    { id: '3', number: 3, title: 'Chapter 3', pages: ['https://picsum.photos/seed/manga3-1/800/1200'] },
-    { id: '2', number: 2, title: 'Chapter 2', pages: ['https://picsum.photos/seed/manga2-1/800/1200'] },
-    { id: '1', number: 1, title: 'Chapter 1', pages: ['https://picsum.photos/seed/manga1-1/800/1200'] },
-  ],
-};
-
-// Comment interface
-interface Comment {
-  id: string;
-  author: string;
-  authorHandle: string;
-  avatar: string;
-  content: string;
-  date: string;
-  time: string;
-}
-
-// Mock comments data
-const mockComments: Comment[] = [
-  {
-    id: '1',
-    author: 'Matteo.sui',
-    authorHandle: '@Matteo.sui',
-    avatar: '/logos/eason.svg',
-    content: 'This chapter was amazing! The art style really captures the emotion of the scene.',
-    date: 'jun 30, 2025',
-    time: '6:20PM',
-  },
-  {
-    id: '2',
-    author: 'CryptoFan',
-    authorHandle: '@CryptoFan',
-    avatar: '/logos/eason.svg',
-    content: 'Love how the story is progressing. Cant wait for the next chapter!',
-    date: 'jun 29, 2025',
-    time: '3:15PM',
-  },
-  {
-    id: '3',
-    author: 'MangaLover',
-    authorHandle: '@MangaLover',
-    avatar: '/logos/eason.svg',
-    content: 'The glowing ball scene gave me chills. Such great storytelling!',
-    date: 'jun 28, 2025',
-    time: '9:45AM',
-  },
-  {
-    id: '4',
-    author: 'SuiEnthusiast',
-    authorHandle: '@SuiEnthusiast',
-    avatar: '/logos/eason.svg',
-    content: 'Best manga on the platform. The NFT integration is genius!',
-    date: 'jun 27, 2025',
-    time: '11:30PM',
-  },
-];
+import StarRating from '@/components/StarRating';
+import { mockMangaDetail, mockComments } from '@/lib/mock-data/manga';
 
 export default function MangaChapterReaderPage() {
   const params = useParams();
@@ -170,12 +17,25 @@ export default function MangaChapterReaderPage() {
   useSidebarContext();
 
   // Find the current chapter
-  const manga = mockMangaData;
+  const manga = mockMangaDetail;
   const currentChapter = manga.chapters.find(ch => ch.id === chapterId);
   const currentChapterIndex = manga.chapters.findIndex(ch => ch.id === chapterId);
 
   // State for current page within the chapter
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+
+  // Load saved reading progress from localStorage
+  useEffect(() => {
+    const savedPage = localStorage.getItem(`reading-${mangaId}-${chapterId}`);
+    if (savedPage) {
+      setCurrentPageIndex(Number(savedPage));
+    }
+  }, [mangaId, chapterId]);
+
+  // Save reading progress to localStorage
+  useEffect(() => {
+    localStorage.setItem(`reading-${mangaId}-${chapterId}`, String(currentPageIndex));
+  }, [currentPageIndex, mangaId, chapterId]);
 
   // State for likes
   const [likes, setLikes] = useState(126);
