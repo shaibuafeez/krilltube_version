@@ -3,50 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSidebarContext } from '@/lib/context/SidebarContext';
-
-// Star Rating Component
-const StarRating = ({ rating }: { rating: number }) => {
-  const fullStars = Math.floor(rating);
-
-  return (
-    <div className="flex items-center justify-start gap-1 w-full mt-1">
-      <div className="flex items-center gap-1">
-        {[...Array(5)].map((_, index) => (
-          <svg
-            key={index}
-            className="w-5 h-5"
-            viewBox="0 0 24 24"
-            fill={index < fullStars ? '#FFB836' : 'none'}
-            stroke="#FFB836"
-            strokeWidth={index < fullStars ? 0 : 1}
-          >
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-        ))}
-      </div>
-      <span className="text-black text-sm font-semibold font-['Outfit']">
-        {rating}
-      </span>
-    </div>
-  );
-};
+import StarRating from '@/components/StarRating';
+import { mockMangaList, type Manga } from '@/lib/mock-data/manga';
 
 // Manga Card Component
-const MangaCard = ({
-  id,
-  title,
-  chapter,
-  rating,
-  price,
-  imageUrl,
-}: {
-  id: string;
-  title: string;
-  chapter: string;
-  rating: number;
-  price: number;
-  imageUrl: string;
-}) => {
+const MangaCard = ({ id, title, chapter, rating, price, imageUrl }: Manga) => {
   return (
     <Link
       href={`/manga/${id}`}
@@ -85,42 +46,15 @@ const MangaCard = ({
   );
 };
 
-// Mock manga data using local images
-const mockManga = [
-  { id: '1', title: 'Adventures of the Yeti into the deep', chapter: 'Chp.12', rating: 4.5, price: 2.5, imageUrl: '/manga/yeti.png' },
-  { id: '2', title: 'Mirai Taipei', chapter: 'Chp.12', rating: 4.5, price: 3.0, imageUrl: '/manga/mirai.png' },
-  { id: '3', title: 'Night of the dragon', chapter: 'Chp.12', rating: 4.5, price: 1.8, imageUrl: '/manga/suiball.png' },
-  { id: '4', title: 'Xociety', chapter: 'Chp.12', rating: 4.5, price: 4.2, imageUrl: '/manga/xociety.png' },
-  { id: '5', title: 'xcom', chapter: 'Chp.12', rating: 4.5, price: 2.0, imageUrl: '/manga/yeti.png' },
-  { id: '6', title: 'Adventures of the Yeti into the deep', chapter: 'Chp.12', rating: 4.5, price: 3.5, imageUrl: '/manga/mirai.png' },
-  { id: '7', title: 'Adventures of the Yeti into the deep', chapter: 'Chp.12', rating: 4.5, price: 2.8, imageUrl: '/manga/suiball.png' },
-  { id: '8', title: 'Mirai Taipei', chapter: 'Chp.12', rating: 4.5, price: 1.5, imageUrl: '/manga/xociety.png' },
-  { id: '9', title: 'Night of the dragon', chapter: 'Chp.12', rating: 4.5, price: 5.0, imageUrl: '/manga/yeti.png' },
-  { id: '10', title: 'Xociety', chapter: 'Chp.12', rating: 4.5, price: 2.2, imageUrl: '/manga/mirai.png' },
-  { id: '11', title: 'xcom', chapter: 'Chp.12', rating: 4.5, price: 3.8, imageUrl: '/manga/suiball.png' },
-  { id: '12', title: 'Adventures of the Yeti into the deep', chapter: 'Chp.12', rating: 4.5, price: 4.5, imageUrl: '/manga/xociety.png' },
-  { id: '13', title: 'Adventures of the Yeti into the deep', chapter: 'Chp.12', rating: 4.5, price: 2.0, imageUrl: '/manga/yeti.png' },
-  { id: '14', title: 'Mirai Taipei', chapter: 'Chp.12', rating: 4.5, price: 3.2, imageUrl: '/manga/mirai.png' },
-  { id: '15', title: 'Night of the dragon', chapter: 'Chp.12', rating: 4.5, price: 1.9, imageUrl: '/manga/suiball.png' },
-  { id: '16', title: 'Xociety', chapter: 'Chp.12', rating: 4.5, price: 4.0, imageUrl: '/manga/xociety.png' },
-  { id: '17', title: 'xcom', chapter: 'Chp.12', rating: 4.5, price: 2.7, imageUrl: '/manga/yeti.png' },
-  { id: '18', title: 'Adventures of the Yeti into the deep', chapter: 'Chp.12', rating: 4.5, price: 3.3, imageUrl: '/manga/mirai.png' },
-  { id: '19', title: 'Adventures of the Yeti into the deep', chapter: 'Chp.12', rating: 4.5, price: 1.6, imageUrl: '/manga/suiball.png' },
-  { id: '20', title: 'Mirai Taipei', chapter: 'Chp.12', rating: 4.5, price: 5.5, imageUrl: '/manga/xociety.png' },
-  { id: '21', title: 'Night of the dragon', chapter: 'Chp.12', rating: 4.5, price: 2.4, imageUrl: '/manga/yeti.png' },
-  { id: '22', title: 'Xociety', chapter: 'Chp.12', rating: 4.5, price: 3.6, imageUrl: '/manga/mirai.png' },
-  { id: '23', title: 'xcom', chapter: 'Chp.12', rating: 4.5, price: 4.8, imageUrl: '/manga/suiball.png' },
-  { id: '24', title: 'Adventures of the Yeti into the deep', chapter: 'Chp.12', rating: 4.5, price: 2.1, imageUrl: '/manga/xociety.png' },
-  { id: '25', title: 'Adventures of the Yeti into the deep', chapter: 'Chp.12', rating: 4.5, price: 3.9, imageUrl: '/manga/yeti.png' },
-];
-
 // Tab categories
 const tabs = [
   { id: 'all', label: 'All' },
   { id: 'trending', label: 'Trending' },
   { id: 'new', label: 'New Releases' },
   { id: 'top', label: 'Top Rated' },
-];
+] as const;
+
+type TabId = typeof tabs[number]['id'];
 
 // Hero banner slideshow images
 const heroBannerImages = [
@@ -137,12 +71,27 @@ const heroBannerImages = [
 ];
 
 export default function MangaPage() {
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState<TabId>('all');
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
+  const [visibleCount, setVisibleCount] = useState(12);
   const { isSidebarCollapsed, isFullyHidden } = useSidebarContext();
 
   // Calculate sidebar offset based on state
   const sidebarOffset = isFullyHidden ? 0 : isSidebarCollapsed ? 160 : 320;
+
+  // Filter manga based on active tab
+  const filteredManga = activeTab === 'all'
+    ? mockMangaList
+    : mockMangaList.filter(manga => manga.category === activeTab);
+
+  // Apply "Load More" limit
+  const visibleManga = filteredManga.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredManga.length;
+
+  // Reset visible count when tab changes
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [activeTab]);
 
   // Auto-slide hero banner every 5 seconds
   useEffect(() => {
@@ -252,31 +201,30 @@ export default function MangaPage() {
       {/* ==================== MANGA CARDS GRID ==================== */}
       <div className="px-16 pb-6">
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {mockManga.map((manga) => (
-            <MangaCard
-              key={manga.id}
-              id={manga.id}
-              title={manga.title}
-              chapter={manga.chapter}
-              rating={manga.rating}
-              price={manga.price}
-              imageUrl={manga.imageUrl}
-            />
+          {visibleManga.map((manga) => (
+            <MangaCard key={manga.id} {...manga} />
           ))}
         </div>
       </div>
 
       {/* ==================== LOAD MORE BUTTON ==================== */}
-      <div className="flex justify-center pb-8">
-        <button className="px-6 py-3 bg-gradient-to-br from-[#0668A6] via-[#0668A6] to-[#1AAACE] rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black inline-flex items-center gap-3 hover:shadow-[2px_2px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] transition-all">
-          <span className="text-white text-lg font-bold font-['Outfit']">Load more</span>
-          <div className="w-8 h-8 bg-black rounded-full flex justify-center items-center">
-            <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M7 10l5 5 5-5H7z" />
-            </svg>
-          </div>
-        </button>
-      </div>
+      {hasMore && (
+        <div className="flex justify-center pb-8">
+          <button
+            onClick={() => setVisibleCount(v => v + 12)}
+            className="px-6 py-3 bg-gradient-to-br from-[#0668A6] via-[#0668A6] to-[#1AAACE] rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black inline-flex items-center gap-3 hover:shadow-[2px_2px_0_0_black] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+          >
+            <span className="text-white text-lg font-bold font-['Outfit']">
+              Load more ({filteredManga.length - visibleCount} remaining)
+            </span>
+            <div className="w-8 h-8 bg-black rounded-full flex justify-center items-center">
+              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M7 10l5 5 5-5H7z" />
+              </svg>
+            </div>
+          </button>
+        </div>
+      )}
     </div>
   );
 }
