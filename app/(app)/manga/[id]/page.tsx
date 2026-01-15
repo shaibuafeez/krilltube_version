@@ -3,118 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useSidebarContext } from '@/lib/context/SidebarContext';
-
-// Star Rating Component
-const StarRating = ({ rating, size = 'md' }: { rating: number; size?: 'sm' | 'md' }) => {
-  const fullStars = Math.floor(rating);
-  const starSize = size === 'sm' ? 'w-[22.8px] h-[22.8px]' : 'w-6 h-6';
-
-  return (
-    <div className="flex flex-row justify-between items-center gap-2 h-8">
-      <div className="flex flex-row justify-between items-center gap-2 h-6">
-        {[...Array(5)].map((_, index) => (
-          <svg
-            key={index}
-            className={starSize}
-            viewBox="0 0 24 24"
-            fill={index < fullStars ? '#FFB836' : 'none'}
-            stroke="#FFB836"
-            strokeWidth={index < fullStars ? 0 : 1}
-          >
-            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-          </svg>
-        ))}
-      </div>
-      <span className="text-black text-xl font-semibold font-['Outfit'] leading-[160%] flex items-center h-8">
-        {rating}
-      </span>
-    </div>
-  );
-};
-
-// Manga data interface
-interface MangaData {
-  id: string;
-  title: string;
-  author: string;
-  authorHandle: string;
-  tags: string[];
-  description: string;
-  rating: number;
-  coverImage: string;
-  chapters: Chapter[];
-}
-
-interface Chapter {
-  id: string;
-  number: number;
-  title: string;
-  createdAt: string;
-  isNew?: boolean;
-}
-
-// Recommendation card interface
-interface RecommendationManga {
-  id: string;
-  title: string;
-  subtitle: string;
-  chapter: string;
-  rating: number;
-  price: number;
-  imageUrl: string;
-}
-
-// Mock manga data
-const mockMangaData: MangaData = {
-  id: '1',
-  title: 'Adventures of the Yeti into the deep',
-  author: 'Matteo.sui',
-  authorHandle: '@matteo.sui',
-  tags: ['NFT', 'Action', 'Adventure', 'Shounen', 'Gaming'],
-  description: 'Bacon ipsum dolor amet prosciutto boudin tail landjaeger, tongue tenderloin turducken sirloin fatback biltong t-bone cow short loin ribeye chicken. Drumstick tongue pig tail. Filet mignon bresaola venison salami, tail beef fatback cow picanha pork.',
-  rating: 4.5,
-  coverImage: '/manga/yeti.png',
-  chapters: [
-    { id: '12', number: 12, title: 'Chapter 12', createdAt: '23 hours ago', isNew: true },
-    { id: '11', number: 11, title: 'Chapter 11', createdAt: '23 hours ago' },
-    { id: '10', number: 10, title: 'Chapter 10', createdAt: '23 hours ago' },
-    { id: '9', number: 9, title: 'Chapter 9', createdAt: '23 hours ago' },
-    { id: '8', number: 8, title: 'Chapter 8', createdAt: '23 hours ago' },
-    { id: '7', number: 7, title: 'Chapter 7', createdAt: '23 hours ago' },
-    { id: '6', number: 6, title: 'Chapter 6', createdAt: '23 hours ago' },
-    { id: '5', number: 5, title: 'Chapter 5', createdAt: '23 hours ago' },
-    { id: '4', number: 4, title: 'Chapter 4', createdAt: '23 hours ago' },
-    { id: '3', number: 3, title: 'Chapter 3', createdAt: '23 hours ago' },
-    { id: '2', number: 2, title: 'Chapter 2', createdAt: '23 hours ago' },
-    { id: '1', number: 1, title: 'Chapter 1', createdAt: '23 hours ago' },
-  ],
-};
-
-// Mock recommendations
-const mockRecommendations: RecommendationManga[] = [
-  { id: '1', title: 'Adventures of the Yeti', subtitle: 'into the deep', chapter: 'Chp.12', rating: 4.5, price: 6, imageUrl: '/manga/yeti.png' },
-  { id: '2', title: 'Mirai Taipei', subtitle: 'Night of the dragon', chapter: 'Chp.12', rating: 4.5, price: 6, imageUrl: '/manga/mirai.png' },
-  { id: '3', title: 'Xociety', subtitle: 'xcom', chapter: 'Chp.12', rating: 4.5, price: 6, imageUrl: '/manga/xociety.png' },
-  { id: '4', title: 'Adventures of the Yeti', subtitle: 'into the deep', chapter: 'Chp.12', rating: 4.5, price: 6, imageUrl: '/manga/suiball.png' },
-  { id: '5', title: 'Adventures of the Yeti', subtitle: 'into the deep', chapter: 'Chp.12', rating: 4.5, price: 6, imageUrl: '/manga/yeti.png' },
-  { id: '6', title: 'Mirai Taipei', subtitle: 'Night of the dragon', chapter: 'Chp.12', rating: 4.5, price: 6, imageUrl: '/manga/mirai.png' },
-];
-
-// Extended recommendations for the modal
-const extendedRecommendations: RecommendationManga[] = [
-  { id: '7', title: 'Night of the dragon', subtitle: 'Chapter 1', chapter: 'Chp.8', rating: 4.2, price: 5, imageUrl: '/manga/xociety.png' },
-  { id: '8', title: 'Suiball Adventures', subtitle: 'The Beginning', chapter: 'Chp.15', rating: 4.8, price: 7, imageUrl: '/manga/suiball.png' },
-  { id: '9', title: 'Yeti Chronicles', subtitle: 'Winter Storm', chapter: 'Chp.6', rating: 4.3, price: 4, imageUrl: '/manga/yeti.png' },
-  { id: '10', title: 'Mirai Future', subtitle: 'New Dawn', chapter: 'Chp.20', rating: 4.6, price: 8, imageUrl: '/manga/mirai.png' },
-  { id: '11', title: 'Xociety Rising', subtitle: 'Revolution', chapter: 'Chp.10', rating: 4.4, price: 6, imageUrl: '/manga/xociety.png' },
-  { id: '12', title: 'Deep Sea Tales', subtitle: 'Ocean Mystery', chapter: 'Chp.3', rating: 4.1, price: 5, imageUrl: '/manga/suiball.png' },
-  { id: '13', title: 'Adventures of the Yeti', subtitle: 'Mountain Peak', chapter: 'Chp.18', rating: 4.7, price: 7, imageUrl: '/manga/yeti.png' },
-  { id: '14', title: 'Taipei Nights', subtitle: 'City Lights', chapter: 'Chp.9', rating: 4.5, price: 6, imageUrl: '/manga/mirai.png' },
-  { id: '15', title: 'Society X', subtitle: 'Underground', chapter: 'Chp.14', rating: 4.3, price: 5, imageUrl: '/manga/xociety.png' },
-  { id: '16', title: 'Ball of Sui', subtitle: 'Tournament Arc', chapter: 'Chp.22', rating: 4.9, price: 9, imageUrl: '/manga/suiball.png' },
-  { id: '17', title: 'Frozen Yeti', subtitle: 'Ice Age', chapter: 'Chp.7', rating: 4.2, price: 4, imageUrl: '/manga/yeti.png' },
-  { id: '18', title: 'Mirai Dreams', subtitle: 'Virtual Reality', chapter: 'Chp.11', rating: 4.6, price: 7, imageUrl: '/manga/mirai.png' },
-];
+import StarRating from '@/components/StarRating';
+import { mockMangaDetail, mockRecommendations, extendedRecommendations, type RecommendationManga } from '@/lib/mock-data/manga';
 
 // Recommendation Card Component
 const RecommendationCard = ({
@@ -158,23 +48,7 @@ const RecommendationCard = ({
         </p>
 
         {/* Star Rating */}
-        <div className="flex items-center justify-start gap-1 w-full mt-1">
-          <div className="flex items-center gap-1">
-            {[...Array(5)].map((_, index) => (
-              <svg
-                key={index}
-                className="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill={index < Math.floor(rating) ? '#FFB836' : 'none'}
-                stroke="#FFB836"
-                strokeWidth={index < Math.floor(rating) ? 0 : 1}
-              >
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-            ))}
-          </div>
-          <span className="text-black text-sm font-semibold font-['Outfit']">{rating}</span>
-        </div>
+        <StarRating rating={rating} size="sm" />
       </div>
     </Link>
   );
@@ -195,7 +69,7 @@ export default function MangaChapterSelectPage() {
     }, 400); // Match animation duration
   };
 
-  const manga = mockMangaData;
+  const manga = mockMangaDetail;
 
   const sortedChapters = [...manga.chapters].sort((a, b) =>
     sortOrder === 'desc' ? b.number - a.number : a.number - b.number
