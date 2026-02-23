@@ -101,12 +101,6 @@ export default function MobileStreamMenu({
                   {streamDescription}
                 </p>
               )}
-
-              {creatorId && !isBroadcaster && (
-                <p className="text-white/70 text-xs font-['Outfit']">
-                  👤 Hosted by {creatorId.slice(0, 8)}...
-                </p>
-              )}
             </div>
 
             {/* Action Buttons */}

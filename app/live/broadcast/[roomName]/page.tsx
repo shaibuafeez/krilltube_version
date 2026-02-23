@@ -200,38 +200,6 @@ export default function BroadcastPage() {
       />
       <div className="min-h-screen bg-gradient-to-br from-[#0668A6] to-[#1AAACE] p-0 md:p-6 pt-0 md:pt-24">
         <div className="max-w-7xl mx-auto">
-        {/* Header - Hide on mobile, compact on desktop */}
-        <div className="mb-2 sm:mb-6 px-4 sm:px-0 hidden sm:flex justify-between items-start">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="px-3 py-1.5 bg-red-600 text-white text-sm font-bold rounded-full
-                border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">
-                🔴 LIVE
-              </span>
-              <h1 className="text-xl sm:text-2xl font-bold text-white font-['Outfit']">
-                {streamInfo?.title || 'Live Broadcast'}
-              </h1>
-            </div>
-            {streamInfo?.description && (
-              <p className="text-white/80 font-['Outfit'] text-sm">
-                {streamInfo.description}
-              </p>
-            )}
-          </div>
-
-          <button
-            onClick={handleEndStream}
-            className="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 rounded-[32px] text-white font-bold font-['Outfit'] text-sm sm:text-base
-              shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
-              outline outline-2 outline-offset-[-2px] outline-black
-              hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
-              hover:translate-x-[1px]
-              hover:translate-y-[1px]
-              transition-all">
-            End Stream
-          </button>
-        </div>
-
         {/* Live Stream Video with Overlay Chat */}
         <div className="relative flex gap-0">
           {/* Video Container - Shrinks when chat is open */}

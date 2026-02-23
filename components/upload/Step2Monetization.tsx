@@ -32,6 +32,8 @@ interface Step2MonetizationProps {
   feeConfigs: FeeConfig[];
   coinMetadataCache: Record<string, CoinMetadata>;
   coinPriceCache: Record<string, CoinPrice>;
+  isFree: boolean;
+  onToggleFree: (free: boolean) => void;
   onAddFeeConfig: () => void;
   onRemoveFeeConfig: (id: string) => void;
   onUpdateTokenType: (id: string, value: string) => void;
@@ -45,6 +47,8 @@ export function Step2Monetization({
   feeConfigs,
   coinMetadataCache,
   coinPriceCache,
+  isFree,
+  onToggleFree,
   onAddFeeConfig,
   onRemoveFeeConfig,
   onUpdateTokenType,
@@ -55,6 +59,33 @@ export function Step2Monetization({
 }: Step2MonetizationProps) {
   return (
     <div className="space-y-6">
+      {/* Free Video Toggle */}
+      <div className="p-6 bg-white rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-bold font-['Outfit'] text-black">Free Video</h3>
+            <p className="text-sm text-black/60 font-['Outfit'] mt-1">
+              Skip the payment gate. Viewers can still tip you voluntarily.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => onToggleFree(!isFree)}
+            className={`relative w-14 h-8 rounded-full transition-colors outline outline-2 outline-black ${
+              isFree ? 'bg-[#0668A6]' : 'bg-gray-300'
+            }`}
+          >
+            <span
+              className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-[1px_1px_0_0_black] outline outline-1 outline-black transition-transform ${
+                isFree ? 'translate-x-7' : 'translate-x-1'
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+
+      {/* Payment Methods - hidden when free */}
+      {!isFree && (<>
       <div className="p-6 bg-white rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold font-['Outfit'] text-black">Payment Methods</h3>
@@ -137,6 +168,8 @@ export function Step2Monetization({
           ))}
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }

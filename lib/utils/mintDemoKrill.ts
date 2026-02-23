@@ -20,13 +20,23 @@ export async function mintDemoKrill({
   console.log('[mintDemoKrill] Starting mint process', { network, recipientAddress });
 
   // Get config based on network
-  const packageId = network === 'sui'
-    ? process.env.NEXT_PUBLIC_SUI_DEMO_KRILL_COIN!.split('::')[0]
-    : process.env.NEXT_PUBLIC_IOTA_DEMO_KRILL_COIN!.split('::')[0];
+  const demoKrillCoin = network === 'sui'
+    ? process.env.NEXT_PUBLIC_SUI_DEMO_KRILL_COIN
+    : process.env.NEXT_PUBLIC_IOTA_DEMO_KRILL_COIN;
+
+  if (!demoKrillCoin) {
+    throw new Error(`Demo KRILL token is not configured for ${network.toUpperCase()}. Please contact support.`);
+  }
+
+  const packageId = demoKrillCoin.split('::')[0];
 
   const treasuryCapId = network === 'sui'
-    ? process.env.NEXT_PUBLIC_SUI_DEMO_KRILL_COIN_TREASURY_CAP_ID!
-    : process.env.NEXT_PUBLIC_IOTA_DEMO_KRILL_COIN_TREASURY_CAP_ID!;
+    ? process.env.NEXT_PUBLIC_SUI_DEMO_KRILL_COIN_TREASURY_CAP_ID
+    : process.env.NEXT_PUBLIC_IOTA_DEMO_KRILL_COIN_TREASURY_CAP_ID;
+
+  if (!treasuryCapId) {
+    throw new Error(`Demo KRILL treasury cap is not configured for ${network.toUpperCase()}. Please contact support.`);
+  }
 
   console.log('[mintDemoKrill] Config:', { packageId, treasuryCapId });
 

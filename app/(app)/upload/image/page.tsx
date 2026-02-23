@@ -78,6 +78,7 @@ function ImagesUploadContent() {
   const [filePreviews, setFilePreviews] = useState<string[]>([]);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [isFree, setIsFree] = useState(false);
   const [feeConfigs, setFeeConfigs] = useState<FeeConfig[]>([
     {
       id: crypto.randomUUID(),
@@ -654,6 +655,8 @@ function ImagesUploadContent() {
                 feeConfigs={feeConfigs}
                 coinMetadataCache={coinMetadataCache}
                 coinPriceCache={coinPriceCache}
+                isFree={isFree}
+                onToggleFree={setIsFree}
                 onAddFeeConfig={handleAddFeeConfig}
                 onRemoveFeeConfig={handleRemoveFeeConfig}
                 onUpdateTokenType={(id, value) => handleUpdateFeeConfig(id, 'tokenType', value)}

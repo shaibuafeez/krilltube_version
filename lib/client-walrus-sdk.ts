@@ -28,7 +28,7 @@ import { WalrusClient } from '@mysten/walrus';
 import type { Signer } from '@mysten/sui/cryptography';
 import { createSuiClientWithRateLimitHandling } from '@/lib/suiClientRateLimitSwitch';
 
-const DEFAULT_NETWORK = 'mainnet';
+const DEFAULT_NETWORK = 'testnet';
 const DEFAULT_EPOCHS = 50;
 
 // Network-specific epoch constraints (from Walrus documentation)

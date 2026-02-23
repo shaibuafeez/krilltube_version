@@ -336,9 +336,6 @@ export default function WatchStreamPage() {
               {streamInfo.description}
             </p>
           )}
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-white/70 font-['Outfit']">
-            <span>👤 Hosted by {streamInfo?.creatorId?.slice(0, 8)}...</span>
-          </div>
         </div>
 
         {/* Live Stream Video with Overlay Chat */}

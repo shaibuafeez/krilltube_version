@@ -47,7 +47,14 @@ export async function POST(request: NextRequest) {
     // Initialize SUI client
     const rpcUrl = process.env.NEXT_PUBLIC_SUI_RPC_URL || 'https://fullnode.mainnet.sui.io:443';
     const client = new SuiClient({ url: rpcUrl });
-    const tunnelPackageId = process.env.NEXT_PUBLIC_SUI_TUNNEL_PACKAGE_ID!;
+    const tunnelPackageId = process.env.NEXT_PUBLIC_SUI_TUNNEL_PACKAGE_ID;
+    if (!tunnelPackageId) {
+      console.error('[Process Payment SUI] NEXT_PUBLIC_SUI_TUNNEL_PACKAGE_ID is not configured');
+      return NextResponse.json(
+        { error: 'SUI payment system is not configured. Please contact support.' },
+        { status: 503 }
+      );
+    }
 
     console.log('[Process Payment SUI] Starting payment verification', {
       videoId,

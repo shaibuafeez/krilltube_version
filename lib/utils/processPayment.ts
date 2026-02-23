@@ -45,8 +45,14 @@ export async function processPayment({
   // Separate flows for SUI and IOTA
   if (network === 'sui') {
     // SUI FLOW
-    const tunnelPackageId = process.env.NEXT_PUBLIC_SUI_TUNNEL_PACKAGE_ID!;
-    const coinType = customCoinType || process.env.NEXT_PUBLIC_SUI_DEMO_KRILL_COIN!;
+    const tunnelPackageId = process.env.NEXT_PUBLIC_SUI_TUNNEL_PACKAGE_ID;
+    if (!tunnelPackageId) {
+      throw new Error('SUI payment system is not configured. Please contact support.');
+    }
+    const coinType = customCoinType || process.env.NEXT_PUBLIC_SUI_DEMO_KRILL_COIN;
+    if (!coinType) {
+      throw new Error('No payment token configured for SUI. Please contact support.');
+    }
     const rpcUrl = process.env.NEXT_PUBLIC_SUI_RPC_URL || 'https://fullnode.mainnet.sui.io:443';
 
     console.log('[processPayment] SUI Config:', { tunnelPackageId, coinType, rpcUrl });
@@ -139,8 +145,14 @@ export async function processPayment({
     }
   } else if (network === 'iota') {
     // IOTA FLOW - Build transaction and process via backend
-    const tunnelPackageId = process.env.NEXT_PUBLIC_IOTA_TUNNEL_PACKAGE_ID!;
-    const coinType = customCoinType || process.env.NEXT_PUBLIC_IOTA_DEMO_KRILL_COIN!;
+    const tunnelPackageId = process.env.NEXT_PUBLIC_IOTA_TUNNEL_PACKAGE_ID;
+    if (!tunnelPackageId) {
+      throw new Error('IOTA payment system is not configured. Please contact support.');
+    }
+    const coinType = customCoinType || process.env.NEXT_PUBLIC_IOTA_DEMO_KRILL_COIN;
+    if (!coinType) {
+      throw new Error('No payment token configured for IOTA. Please contact support.');
+    }
     const rpcUrl = process.env.NEXT_PUBLIC_IOTA_RPC_URL || 'https://api.mainnet.iota.cafe';
 
     console.log('[processPayment] IOTA Config:', { tunnelPackageId, coinType, rpcUrl });
