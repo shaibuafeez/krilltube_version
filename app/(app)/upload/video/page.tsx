@@ -142,6 +142,7 @@ function UploadContent() {
   const [selectedQualities, setSelectedQualities] = useState<RenditionQuality[]>([
     '1080p',
   ]);
+  const [isFree, setIsFree] = useState(false);
   const [feeConfigs, setFeeConfigs] = useState<FeeConfig[]>([
     {
       id: crypto.randomUUID(),
@@ -1094,6 +1095,7 @@ function UploadContent() {
           poster: finalPoster, // Custom base64 thumbnail or auto-generated
           duration: primaryResult.duration,
           network: walrusNetwork, // Save the network used for upload
+          isFree, // Free videos skip payment gate
           encryptionType, // Store encryption type for playback
           sealObjectId: creatorProfile?.sealObjectId, // Store channel ID for SEAL videos
           renditions: (mergedRenditions || primaryResult.renditions).map((r) => ({
@@ -1473,6 +1475,8 @@ function UploadContent() {
                 feeConfigs={feeConfigs}
                 coinMetadataCache={coinMetadataCache}
                 coinPriceCache={coinPriceCache}
+                isFree={isFree}
+                onToggleFree={setIsFree}
                 onAddFeeConfig={handleAddFeeConfig}
                 onRemoveFeeConfig={handleRemoveFeeConfig}
                 onUpdateTokenType={(id, value) => handleUpdateFeeConfig(id, 'tokenType', value)}

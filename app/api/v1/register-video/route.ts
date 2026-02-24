@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
       posterBlobObjectId,
       duration,
       network,
+      isFree,
       encryptionType,
       sealObjectId,
       renditions,
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
       posterBlobObjectId?: string; // Mainnet only - for extend/delete operations
       duration: number;
       network?: 'mainnet' | 'testnet'; // Walrus network (optional, defaults to mainnet)
+      isFree?: boolean; // Free videos skip payment gate
       encryptionType?: 'per-video' | 'subscription-acl' | 'both'; // Encryption type
       sealObjectId?: string; // Creator's SEAL channel ID (for subscription videos)
       creatorConfigs?: Array<{
@@ -159,6 +161,7 @@ export async function POST(request: NextRequest) {
         posterEndEpoch: posterEndEpoch, // Mainnet only
         duration,
         network: network || 'mainnet', // Save Walrus network (defaults to mainnet)
+        isFree: isFree || false, // Free videos skip payment gate
         encryptionType: encryptionType || 'per-video', // Save encryption type (defaults to per-video)
         sealObjectId: sealObjectId || null, // Save SEAL channel ID for subscription videos
         creatorId,

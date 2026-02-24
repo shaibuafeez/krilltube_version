@@ -12,6 +12,7 @@ import CoHostControls from '@/components/CoHostControls';
 import EmojiReactions from '@/components/EmojiReactions';
 import { Header } from '@/components/Header';
 import MobileStreamMenu from '@/components/MobileStreamMenu';
+import MeetStyleControls from '@/components/MeetStyleControls';
 
 // Wrapper component to access LiveKit context
 function BroadcastContent({
@@ -19,14 +20,24 @@ function BroadcastContent({
   currentAccount,
   roomName,
   handleEndStream,
+  isChatOpen,
+  setIsChatOpen,
+  viewMode,
+  setViewMode,
 }: {
   streamInfo: any;
   currentAccount: any;
   roomName: string;
   handleEndStream: () => void;
+  isChatOpen: boolean;
+  setIsChatOpen: (open: boolean) => void;
+  viewMode: 'speaker' | 'grid';
+  setViewMode: (mode: 'speaker' | 'grid') => void;
 }) {
   const participants = useParticipants();
-  const viewerCount = Math.max(0, participants.length - 1);
+  const viewerCount = participants.length;
+
+  console.log('[Broadcast] Participants:', participants.length, 'Viewer count:', viewerCount);
 
   return (
     <>
@@ -40,23 +51,25 @@ function BroadcastContent({
         onEndStream={handleEndStream}
       />
 
-      <LiveStreamPlayer isBroadcaster={true} />
-
-      {/* Co-host Controls - Bottom right (includes invite button) */}
-      {currentAccount?.address && (
-        <CoHostControls
-          streamId={streamInfo?.id || ''}
-          userId={currentAccount.address}
-          isBroadcaster={true}
-        />
-      )}
-
-      {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
-      <LiveChatOverlay
-        roomName={roomName}
-        streamId={streamInfo?.id || ''}
-        creatorAddress={streamInfo?.creatorId || ''}
+      <LiveStreamPlayer
         isBroadcaster={true}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
+
+      {/* Google Meet Style Controls - Bottom center */}
+      <MeetStyleControls
+        onLeave={handleEndStream}
+        isBroadcaster={true}
+        isChatOpen={isChatOpen}
+        onToggleChat={() => setIsChatOpen(!isChatOpen)}
+        streamId={streamInfo?.id || ''}
+        viewMode={viewMode}
+        onToggleViewMode={() => {
+          const newMode = viewMode === 'grid' ? 'speaker' : 'grid';
+          console.log('[Broadcast] Toggling view mode from', viewMode, 'to', newMode);
+          setViewMode(newMode);
+        }}
       />
 
       {/* Invitation Notifications - Inside video screen */}
@@ -81,6 +94,8 @@ export default function BroadcastPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [streamInfo, setStreamInfo] = useState<any>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'speaker' | 'grid'>('speaker');
 
   useEffect(() => {
     if (!currentAccount?.address || !roomName) {
@@ -185,44 +200,14 @@ export default function BroadcastPage() {
       />
       <div className="min-h-screen bg-gradient-to-br from-[#0668A6] to-[#1AAACE] p-0 md:p-6 pt-0 md:pt-24">
         <div className="max-w-7xl mx-auto">
-        {/* Header - Hide on mobile, compact on desktop */}
-        <div className="mb-2 sm:mb-6 px-4 sm:px-0 hidden sm:flex justify-between items-start">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <span className="px-3 py-1.5 bg-red-600 text-white text-sm font-bold rounded-full
-                border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">
-                🔴 LIVE
-              </span>
-              <h1 className="text-xl sm:text-2xl font-bold text-white font-['Outfit']">
-                {streamInfo?.title || 'Live Broadcast'}
-              </h1>
-            </div>
-            {streamInfo?.description && (
-              <p className="text-white/80 font-['Outfit'] text-sm">
-                {streamInfo.description}
-              </p>
-            )}
-          </div>
-
-          <button
-            onClick={handleEndStream}
-            className="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 rounded-[32px] text-white font-bold font-['Outfit'] text-sm sm:text-base
-              shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
-              outline outline-2 outline-offset-[-2px] outline-black
-              hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
-              hover:translate-x-[1px]
-              hover:translate-y-[1px]
-              transition-all">
-            End Stream
-          </button>
-        </div>
-
         {/* Live Stream Video with Overlay Chat */}
-        <div className="relative">
-          <div className="sm:rounded-[32px] overflow-hidden
+        <div className="relative flex gap-0">
+          {/* Video Container - Shrinks when chat is open */}
+          <div className={`overflow-hidden
             sm:shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
             sm:outline sm:outline-[3px] sm:outline-offset-[-3px] sm:outline-black
-            bg-black h-screen sm:h-[calc(100vh-200px)]">
+            bg-black h-screen sm:h-[calc(100vh-200px)] transition-all duration-300
+            ${isChatOpen ? 'w-full sm:w-[calc(100%-384px)] sm:rounded-l-[32px]' : 'w-full sm:rounded-[32px]'}`}>
 
             {/* Inner container to keep all absolute elements inside */}
             <div className="relative w-full h-full">
@@ -239,9 +224,24 @@ export default function BroadcastPage() {
                   currentAccount={currentAccount}
                   roomName={roomName}
                   handleEndStream={handleEndStream}
+                  isChatOpen={isChatOpen}
+                  setIsChatOpen={setIsChatOpen}
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
                 />
               </LiveKitRoom>
             </div>
+          </div>
+
+          {/* Chat Panel - Fixed position on right */}
+          <div className={`h-screen sm:h-[calc(100vh-200px)] sm:shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)] sm:outline sm:outline-[3px] sm:outline-offset-[-3px] sm:outline-black rounded-bl-[32px] sm:rounded-bl-none sm:rounded-r-[32px] ${isChatOpen ? 'w-full sm:w-96' : 'w-0'} transition-all duration-300 overflow-hidden`}>
+            <LiveChatOverlay
+              roomName={roomName}
+              streamId={streamInfo?.id || ''}
+              creatorAddress={streamInfo?.creatorId || ''}
+              isBroadcaster={true}
+              isChatOpen={isChatOpen}
+            />
           </div>
         </div>
       </div>

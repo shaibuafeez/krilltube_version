@@ -33,6 +33,7 @@ export interface CustomVideoPlayerProps {
   autoplay?: boolean;
   posterUrl?: string; // Thumbnail/poster image URL (can be base64 data URL)
   className?: string;
+  isFree?: boolean; // Free videos skip payment gate
   // SEAL encryption props
   encryptionType?: 'per-video' | 'subscription-acl' | 'both';
   channelId?: string; // Creator's SEAL channel ID
@@ -50,6 +51,7 @@ export function CustomVideoPlayer({
   autoplay = false,
   posterUrl,
   className = '',
+  isFree = false,
   encryptionType = 'per-video',
   channelId,
   creatorAddress,
@@ -245,6 +247,13 @@ export function CustomVideoPlayer({
   // Check if user has already paid for this video (only for DEK videos)
   useEffect(() => {
     const checkPaymentStatus = async () => {
+      // Skip payment check for free videos
+      if (isFree) {
+        console.log('[CustomVideoPlayer] Free video - skipping payment check');
+        setCheckingPayment(false);
+        return;
+      }
+
       // Skip payment check for subscription-only videos
       if (encryptionType === 'subscription-acl') {
         console.log('[CustomVideoPlayer] Subscription-only video - skipping payment check');

@@ -40,8 +40,8 @@ export function NetworkProvider({ children }: { children: ReactNode }) {
         return stored;
       }
     }
-    // Default to mainnet for production
-    return 'mainnet';
+    // Default to testnet
+    return 'testnet';
   });
 
   const setWalrusNetwork = (newNetwork: WalrusNetwork) => {

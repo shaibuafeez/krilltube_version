@@ -44,6 +44,10 @@
     "lib/move/iota/tunnel/**/*",
     "scripts/**/*",
     "tests/**/*",
-    "livestream/**/*"
+    "livestream/**/*",
+    "comics_web3/**/*",
+    "nft/**/*",
+    "liquidlink-krilltube-sdk/**/*",
+    "walrus/**/*"
   ]
 }

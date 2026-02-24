@@ -22,13 +22,12 @@ export default function ViewerParticipation({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Don't show for broadcasters or if participation is disabled
-  if (isBroadcaster || !allowParticipation || !currentAccount?.address) {
-    return null;
-  }
-
   // Poll participant status every 3 seconds
   useEffect(() => {
+    // Skip if conditions aren't met
+    if (isBroadcaster || !allowParticipation || !currentAccount?.address) {
+      return;
+    }
     const checkParticipantStatus = async () => {
       try {
         const response = await fetch(`/api/live/participants?streamId=${streamId}`);
@@ -53,7 +52,12 @@ export default function ViewerParticipation({
     const interval = setInterval(checkParticipantStatus, 3000);
 
     return () => clearInterval(interval);
-  }, [streamId, currentAccount?.address]);
+  }, [streamId, currentAccount?.address, isBroadcaster, allowParticipation]);
+
+  // Don't show for broadcasters or if participation is disabled
+  if (isBroadcaster || !allowParticipation || !currentAccount?.address) {
+    return null;
+  }
 
   const handleRaiseHand = async () => {
     if (!currentAccount?.address) return;
@@ -117,21 +121,9 @@ export default function ViewerParticipation({
     }
   };
 
-  // If user is already a co-host, show active status
+  // If user is already a co-host, hide the notification
   if (isCoHost) {
-    return (
-      <div className="absolute bottom-4 right-4 pointer-events-auto">
-        <div className="px-4 py-3 bg-gradient-to-br from-[#97F0E5] to-[#C584F6] rounded-[32px]
-          shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
-          outline outline-2 outline-offset-[-2px] outline-black
-          flex items-center gap-2">
-          <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-          <span className="text-black text-sm font-bold font-['Outfit']">
-            🎙️ You're on stage
-          </span>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   // If hand is raised, show pending status with cancel option

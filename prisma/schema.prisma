@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model AssetRevision {
@@ -153,6 +154,9 @@ model Video {
   updatedAt            DateTime          @updatedAt @map("updated_at")
   creatorId            String            @map("creator_id")
 
+  // Free videos skip payment gate entirely (viewers can still tip)
+  isFree               Boolean           @default(false) @map("is_free")
+
   // Encryption type: "per-video" (pay per video) or "subscription-acl" (subscribers only) or "both"
   encryptionType       String            @default("per-video") @map("encryption_type")
 
@@ -166,6 +170,7 @@ model Video {
   creatorConfigs       CreatorConfig[]   @relation("VideoToCreatorConfig")
   likes                VideoLike[]       @relation("VideoToLikes")
   comments             VideoComment[]    @relation("VideoToComments")
+  tips                 VideoTip[]        @relation("VideoToTips")
   liveStream           LiveStream?       @relation("LiveStreamToVideo")
 
   @@index([creatorId])
@@ -223,6 +228,24 @@ model VideoComment {
   @@index([userId])
   @@index([videoId, donationAmount]) // For efficient donation-based sorting
   @@map("video_comments")
+}
+
+model VideoTip {
+  id            String   @id @default(cuid())
+  videoId       String   @map("video_id")
+  tipperAddress String   @map("tipper_address")
+  tipperName    String?  @map("tipper_name")
+  amount        String   // Amount in smallest unit (MIST for SUI)
+  message       String?
+  txDigest      String   @map("tx_digest")
+  chain         String   @default("sui")
+  createdAt     DateTime @default(now()) @map("created_at")
+  video         Video    @relation("VideoToTips", fields: [videoId], references: [id], onDelete: Cascade)
+
+  @@index([videoId])
+  @@index([tipperAddress])
+  @@index([videoId, amount]) // For tip leaderboard
+  @@map("video_tips")
 }
 
 model Creator {

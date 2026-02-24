@@ -13,6 +13,8 @@ import { NetworkProvider } from '@/contexts/NetworkContext';
 // import { IotaProvider } from '@/lib/providers/iota-provider';
 import { WalletContextProvider } from '@/lib/context/WalletContext';
 import { safeLocalStorage } from '@/lib/utils/storage';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import '@/lib/validateEnv';
 import '@mysten/dapp-kit/dist/index.css';
 // IOTA disabled - using Sui/Walrus only
 // import '@iota/dapp-kit/dist/index.css';
@@ -31,7 +33,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
           <SuiWalletProvider autoConnect={true} storage={safeLocalStorage} storageKey="sui-wallet">
             {/* IOTA disabled - using Sui/Walrus only */}
             <WalletContextProvider>
-              {children}
+              <ErrorBoundary>
+                {children}
+              </ErrorBoundary>
             </WalletContextProvider>
           </SuiWalletProvider>
         </SuiClientProvider>

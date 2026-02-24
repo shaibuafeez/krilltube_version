@@ -54,7 +54,14 @@ export async function POST(request: NextRequest) {
     // Initialize IOTA client
     const rpcUrl = process.env.NEXT_PUBLIC_IOTA_RPC_URL || 'https://api.mainnet.iota.cafe';
     const client = new IotaClient({ url: rpcUrl });
-    const tunnelPackageId = process.env.NEXT_PUBLIC_IOTA_TUNNEL_PACKAGE_ID!;
+    const tunnelPackageId = process.env.NEXT_PUBLIC_IOTA_TUNNEL_PACKAGE_ID;
+    if (!tunnelPackageId) {
+      console.error('[Process Payment IOTA] NEXT_PUBLIC_IOTA_TUNNEL_PACKAGE_ID is not configured');
+      return NextResponse.json(
+        { error: 'IOTA payment system is not configured. Please contact support.' },
+        { status: 503 }
+      );
+    }
 
     console.log('[Process Payment IOTA] Starting payment processing', {
       videoId,

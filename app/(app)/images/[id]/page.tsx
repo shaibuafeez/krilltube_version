@@ -14,6 +14,9 @@ interface ImageData {
   filename: string;
   size: number;
   mimeType: string;
+  walrusUri: string;
+  blobObjectId: string | null;
+  endEpoch: number | null;
   createdAt: string;
 }
 
@@ -36,6 +39,7 @@ export default function ImageViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [showBlobIds, setShowBlobIds] = useState(false);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -218,6 +222,80 @@ export default function ImageViewPage() {
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Storage Blob Details */}
+          <div className="mt-6 p-6 bg-[#F5F0E8] rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] border-[3px] border-black flex flex-col gap-3">
+            <button
+              onClick={() => setShowBlobIds(!showBlobIds)}
+              className="w-full flex justify-between items-center cursor-pointer group"
+            >
+              <div className="flex items-center gap-2">
+                <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                </svg>
+                <div className="text-black text-xl font-bold font-['Outfit']">Walrus Storage Details</div>
+              </div>
+              <svg className={`w-6 h-6 text-black transition-transform ${showBlobIds ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {showBlobIds && (
+              <div className="w-full flex flex-col gap-4">
+                <p className="text-sm text-black/70 font-['Outfit']">
+                  Walrus blob details for each image. {content.network === 'mainnet' ? 'Click any ID to view on Sui Explorer.' : 'Stored on Walrus testnet.'}
+                </p>
+
+                {content.images.map((img, index) => {
+                  const walruscanBase = content.network === 'mainnet'
+                    ? 'https://walruscan.com/mainnet/blob'
+                    : 'https://walruscan.com/testnet/blob';
+                  const blobId = img.walrusUri?.split('/v1/blobs/')[1] || img.walrusUri;
+
+                  return (
+                    <div key={img.id} className="p-4 bg-white rounded-2xl border-2 border-black flex flex-col gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className="px-2 py-1 bg-[#1AAACE] rounded-full">
+                          <span className="text-white text-xs font-bold font-['Outfit']">IMAGE {index + 1}</span>
+                        </div>
+                        <span className="text-sm font-semibold text-black font-['Outfit']">{img.filename}</span>
+                        <span className="text-xs text-black/50 font-['Outfit'] ml-auto">
+                          {(img.size / 1024).toFixed(1)} KB
+                        </span>
+                      </div>
+
+                      {/* Walrus Blob ID */}
+                      {blobId && (
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-semibold text-black/70 font-['Outfit']">Walrus Blob ID:</span>
+                          <a
+                            href={`${walruscanBase}/${blobId}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-mono text-[#0668A6] hover:text-[#1AAACE] break-all font-['Outfit']"
+                          >
+                            {blobId}
+                          </a>
+                        </div>
+                      )}
+
+                      {img.endEpoch && (
+                        <div className="text-xs text-black/60 font-['Outfit']">
+                          Storage Expiry Epoch: {img.endEpoch}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                <div className="p-3 bg-gradient-to-br from-[#1AAACE]/10 to-[#0668A6]/10 rounded-xl border-2 border-[#1AAACE]/30">
+                  <p className="text-xs text-black/70 font-['Outfit']">
+                    These blob IDs verify your images are stored on <strong>Walrus decentralized storage</strong>. Each image is encrypted and stored as an individual blob on the network.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

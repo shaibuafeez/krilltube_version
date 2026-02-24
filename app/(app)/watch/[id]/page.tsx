@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { CustomVideoPlayer } from '@/components/CustomVideoPlayer';
+import TipModal from '@/components/modals/TipModal';
 import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClient, useSignPersonalMessage } from '@mysten/dapp-kit';
 
 // Helper function to fix Walrus URLs
@@ -59,6 +60,7 @@ export default function WatchPage() {
   const [confirmText, setConfirmText] = useState('');
 
   // Like state
+  const [showTipModal, setShowTipModal] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
   const [likingInProgress, setLikingInProgress] = useState(false);
@@ -577,6 +579,7 @@ export default function WatchPage() {
                 title={video.title}
                 autoplay={false}
                 posterUrl={video.poster || (video.posterWalrusUri ? fixWalrusUrl(video.posterWalrusUri, video.network || 'mainnet') : undefined)}
+                isFree={video.isFree || false}
                 encryptionType={video.encryptionType || 'per-video'}
                 channelId={video.sealObjectId}
                 creatorAddress={video.creatorId}
@@ -740,10 +743,13 @@ export default function WatchPage() {
                 </div>
 
                 {/* Tip Button */}
-                <div className="w-12 h-12 bg-white rounded-full shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black inline-flex justify-center items-center gap-1 cursor-pointer hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all">
-                  <span className="text-black text-base font-semibold font-['Outfit']">5</span>
+                <button
+                  onClick={() => setShowTipModal(true)}
+                  className="h-12 px-4 bg-[#FFEEE5] rounded-full shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black inline-flex justify-center items-center gap-1.5 cursor-pointer hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+                >
+                  <span className="text-black text-sm font-bold font-['Outfit']">Tip</span>
                   <img src="/logos/sui-logo.png" alt="SUI" width={16} height={16} className="object-contain" />
-                </div>
+                </button>
 
                 {/* Creator Action Buttons - Only visible to video owner */}
                 {account?.address === video.creatorId && (
@@ -1206,6 +1212,17 @@ export default function WatchPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Tip Modal */}
+      {video && (
+        <TipModal
+          isOpen={showTipModal}
+          onClose={() => setShowTipModal(false)}
+          videoId={video.id}
+          creatorAddress={video.creatorId}
+          creatorName={creator?.name}
+        />
       )}
     </div>
   );

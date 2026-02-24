@@ -8,25 +8,41 @@ import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
 import ViewerParticipation from '@/components/ViewerParticipation';
 import InvitationNotifications from '@/components/InvitationNotifications';
-import CoHostControls from '@/components/CoHostControls';
 import EmojiReactions from '@/components/EmojiReactions';
 import { Header } from '@/components/Header';
 import MobileStreamMenu from '@/components/MobileStreamMenu';
+import MeetStyleControls from '@/components/MeetStyleControls';
+import EmojiReactionPicker from '@/components/EmojiReactionPicker';
 
 // Wrapper component to access LiveKit context
 function StreamContent({
   streamInfo,
   userRole,
-  currentAccount,
   roomName,
+  isChatOpen,
+  setIsChatOpen,
+  viewMode,
+  setViewMode,
 }: {
   streamInfo: any;
   userRole: 'viewer' | 'co-host';
-  currentAccount: any;
   roomName: string;
+  isChatOpen: boolean;
+  setIsChatOpen: (open: boolean) => void;
+  viewMode: 'speaker' | 'grid';
+  setViewMode: (mode: 'speaker' | 'grid') => void;
 }) {
   const participants = useParticipants();
-  const viewerCount = Math.max(0, participants.length - 1);
+  const viewerCount = participants.length;
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
+
+  console.log('[Watch] Participants:', participants.length, 'Viewer count:', viewerCount);
+
+  const handleOpenGift = () => {
+    if ((window as any).__openDonationModal) {
+      (window as any).__openDonationModal();
+    }
+  };
 
   return (
     <>
@@ -40,23 +56,103 @@ function StreamContent({
         isBroadcaster={false}
       />
 
-      <LiveStreamPlayer isBroadcaster={userRole === 'co-host'} />
+      <LiveStreamPlayer
+        isBroadcaster={userRole === 'co-host'}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+      />
 
-      {/* Co-host controls - Show when promoted */}
-      {userRole === 'co-host' && currentAccount?.address && (
-        <CoHostControls
+      {/* Google Meet Style Controls - Show when promoted to co-host */}
+      {userRole === 'co-host' && (
+        <MeetStyleControls
+          onLeave={() => window.location.href = '/'}
+          isBroadcaster={false}
+          onOpenGift={handleOpenGift}
+          isChatOpen={isChatOpen}
+          onToggleChat={() => setIsChatOpen(!isChatOpen)}
           streamId={streamInfo?.id || ''}
-          userId={currentAccount.address}
+          viewMode={viewMode}
+          onToggleViewMode={() => setViewMode(viewMode === 'grid' ? 'speaker' : 'grid')}
         />
       )}
 
-      {/* Chat Overlay - Positioned over video like YouTube/TikTok Live */}
-      <LiveChatOverlay
-        roomName={roomName}
-        streamId={streamInfo?.id || ''}
-        creatorAddress={streamInfo?.creatorId || ''}
-        isBroadcaster={false}
-      />
+      {/* Chat Toggle Button for Viewers (non-co-hosts) */}
+      {userRole === 'viewer' && (
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
+          {/* Emoji Reaction Picker */}
+          <EmojiReactionPicker
+            streamId={streamInfo?.id || ''}
+            isOpen={isEmojiPickerOpen}
+            onClose={() => setIsEmojiPickerOpen(false)}
+          />
+
+          <div className="flex items-center gap-2 px-4 py-2 bg-[#202124] rounded-full shadow-lg border border-gray-700/50 relative">
+            {/* Grid/Speaker View Toggle */}
+            <button
+              onClick={() => setViewMode(viewMode === 'grid' ? 'speaker' : 'grid')}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
+                ${viewMode === 'grid'
+                  ? 'bg-[#1a73e8] hover:bg-[#1765cc] text-white'
+                  : 'bg-[#3c4043] hover:bg-[#5f6368] text-white'
+                }`}
+              title={viewMode === 'grid' ? 'Switch to speaker view' : 'Switch to grid view'}
+            >
+              {viewMode === 'grid' ? (
+                /* Speaker View Icon */
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              ) : (
+                /* Grid View Icon */
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+                </svg>
+              )}
+            </button>
+
+            {/* Chat Toggle */}
+            <button
+              onClick={() => setIsChatOpen(!isChatOpen)}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
+                ${isChatOpen
+                  ? 'bg-[#1a73e8] hover:bg-[#1765cc] text-white'
+                  : 'bg-[#3c4043] hover:bg-[#5f6368] text-white'
+                }`}
+              title={isChatOpen ? 'Close chat' : 'Open chat'}
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </button>
+
+            {/* Reactions Button */}
+            <button
+              onClick={() => setIsEmojiPickerOpen(!isEmojiPickerOpen)}
+              className={`w-10 h-10 rounded-full flex items-center justify-center transition-all
+                ${isEmojiPickerOpen
+                  ? 'bg-[#1a73e8] hover:bg-[#1765cc] text-white'
+                  : 'bg-[#3c4043] hover:bg-[#5f6368] text-white'
+                }`}
+              title="React with emoji"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </button>
+
+            {/* Gift Button */}
+            <button
+              onClick={handleOpenGift}
+              className="w-10 h-10 rounded-full bg-[#3c4043] hover:bg-[#5f6368] flex items-center justify-center transition-all text-white"
+              title="Send Gift"
+            >
+              <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Viewer Participation - Request to Join Stream */}
       <ViewerParticipation
@@ -90,6 +186,8 @@ export default function WatchStreamPage() {
   const [streamInfo, setStreamInfo] = useState<any>(null);
   const [userRole, setUserRole] = useState<'viewer' | 'co-host'>('viewer');
   const [isRefreshingToken, setIsRefreshingToken] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'speaker' | 'grid'>('speaker');
 
   useEffect(() => {
     if (!currentAccount?.address || !roomName) {
@@ -238,17 +336,16 @@ export default function WatchStreamPage() {
               {streamInfo.description}
             </p>
           )}
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-white/70 font-['Outfit']">
-            <span>👤 Hosted by {streamInfo?.creatorId?.slice(0, 8)}...</span>
-          </div>
         </div>
 
         {/* Live Stream Video with Overlay Chat */}
-        <div className="relative">
-          <div className="sm:rounded-[32px] overflow-hidden
+        <div className="relative flex gap-0">
+          {/* Video Container - Shrinks when chat is open */}
+          <div className={`overflow-hidden
             sm:shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
             sm:outline sm:outline-[3px] sm:outline-offset-[-3px] sm:outline-black
-            bg-black h-screen sm:h-[calc(100vh-200px)]">
+            bg-black h-screen sm:h-[calc(100vh-200px)] transition-all duration-300
+            ${isChatOpen ? 'w-full sm:w-[calc(100%-384px)] sm:rounded-l-[32px]' : 'w-full sm:rounded-[32px]'}`}>
 
             {/* Inner container to keep all absolute elements inside */}
             <div className="relative w-full h-full">
@@ -279,11 +376,26 @@ export default function WatchStreamPage() {
                 <StreamContent
                   streamInfo={streamInfo}
                   userRole={userRole}
-                  currentAccount={currentAccount}
                   roomName={roomName}
+                  isChatOpen={isChatOpen}
+                  setIsChatOpen={setIsChatOpen}
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
                 />
               </LiveKitRoom>
             </div>
+          </div>
+
+          {/* Chat Panel - Fixed position on right */}
+          <div className={`h-screen sm:h-[calc(100vh-200px)] sm:shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)] sm:outline sm:outline-[3px] sm:outline-offset-[-3px] sm:outline-black rounded-bl-[32px] sm:rounded-bl-none sm:rounded-r-[32px] ${isChatOpen ? 'w-full sm:w-96' : 'w-0'} transition-all duration-300 overflow-hidden`}>
+            <LiveChatOverlay
+              roomName={roomName}
+              streamId={streamInfo?.id || ''}
+              creatorAddress={streamInfo?.creatorId || ''}
+              isBroadcaster={false}
+              onOpenGift={(window as any).__openDonationModal}
+              isChatOpen={isChatOpen}
+            />
           </div>
         </div>
       </div>

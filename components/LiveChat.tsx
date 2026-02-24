@@ -19,18 +19,15 @@ interface LiveChatProps {
   isBroadcaster?: boolean;
   streamId: string;
   creatorAddress: string;
+  externalOpenDonation?: () => void;
 }
 
-const EMOJI_OPTIONS = ['❤️', '👍', '😂', '🔥', '🎉', '😮', '👏', '💯'];
-
-export default function LiveChat({ roomName, isBroadcaster = false, streamId, creatorAddress }: LiveChatProps) {
+export default function LiveChat({ roomName, isBroadcaster = false, streamId, creatorAddress, externalOpenDonation }: LiveChatProps) {
   const currentAccount = useCurrentAccount();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
-  const [showEmojiPanel, setShowEmojiPanel] = useState(false);
-  const [isSendingReaction, setIsSendingReaction] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
@@ -42,6 +39,16 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Expose functions to external handlers
+  useEffect(() => {
+    if (externalOpenDonation) {
+      (window as any).__openDonationModal = () => setIsDonationModalOpen(true);
+    }
+    return () => {
+      delete (window as any).__openDonationModal;
+    };
+  }, [externalOpenDonation]);
 
   // Fetch existing messages on mount and poll for updates
   useEffect(() => {
@@ -133,33 +140,6 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
     // The Super Chat message will appear via polling
   };
 
-  const sendReaction = async (emoji: string) => {
-    if (!currentAccount?.address || isSendingReaction) return;
-
-    setIsSendingReaction(true);
-    setShowEmojiPanel(false);
-
-    try {
-      const response = await fetch('/api/live/reactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          streamId,
-          userId: currentAccount.address,
-          emoji,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to send reaction');
-      }
-    } catch (err) {
-      console.error('[LiveChat] Send reaction error:', err);
-    } finally {
-      setIsSendingReaction(false);
-    }
-  };
-
   // Generate avatar shade from userId (black and white)
   const getAvatarColor = (userId: string) => {
     const colors = [
@@ -180,14 +160,11 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
   };
 
   return (
-    <div className="h-full flex flex-col gap-2">
-
-      {/* No header - TikTok Live style */}
-
-      {/* Messages Container - TikTok Live Style */}
+    <div className="h-full flex flex-col">
+      {/* Messages Container - Zoom Style */}
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto space-y-1.5 flex flex-col justify-end"
+        className="flex-1 overflow-y-auto px-4 py-3 space-y-2"
       >
         {messages.length === 0 ? (
           <div className="flex items-center justify-center py-4 hidden md:flex">
@@ -210,33 +187,33 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
                 </div>
               )}
 
-              {/* Super Chat Message - Highlighted */}
+              {/* Super Chat Message - White and Minimalistic */}
               {msg.donationAmount && !msg.deleted ? (
                 <div className="px-3 py-1.5
-                  bg-gradient-to-r from-yellow-400/95 to-orange-500/95
-                  backdrop-blur-sm rounded-2xl">
+                  bg-white/90 backdrop-blur-sm rounded-2xl
+                  border border-white/20">
                   <div className="flex items-baseline gap-1.5">
                     <p className="text-xs font-bold text-black font-['Outfit']">
                       {msg.userName}
                     </p>
-                    <span className="text-xs font-semibold text-black/80 font-['Outfit']">
+                    <span className="text-xs font-semibold text-black/70 font-['Outfit']">
                       💰 {(parseInt(msg.donationAmount) / 1e9).toFixed(2)} SUI
                     </span>
                   </div>
-                  <p className="text-sm text-black font-['Outfit'] font-medium">
+                  <p className="text-sm text-black/80 font-['Outfit'] font-medium">
                     {msg.message}
                   </p>
                 </div>
               ) : (
-                /* Regular Message - Compact */
+                /* Regular Message - Reduced Opacity */
                 !msg.deleted && (
                   <div className="px-3 py-1.5
-                    bg-black/60 backdrop-blur-sm rounded-2xl">
+                    bg-black/40 backdrop-blur-sm rounded-2xl">
                     <p className="text-xs font-['Outfit']">
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-white/90">
                         {msg.userName}:
                       </span>
-                      <span className="text-white/90 ml-1">
+                      <span className="text-white/80 ml-1">
                         {msg.message}
                       </span>
                     </p>
@@ -249,50 +226,16 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Message Input - TikTok Live Style */}
-      <div className="p-2 relative">
-        {/* Emoji Picker Panel - Appears above input */}
-        {showEmojiPanel && (
-          <div className="absolute bottom-full left-2 mb-2 bg-white rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black z-10">
-            {/* Header with close button */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200">
-              <span className="text-xs font-semibold text-gray-700 font-['Outfit']">React</span>
-              <button
-                onClick={() => setShowEmojiPanel(false)}
-                className="w-6 h-6 rounded-full bg-gray-100 hover:bg-gray-200 transition-colors flex items-center justify-center"
-                title="Close"
-              >
-                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            {/* Emoji grid */}
-            <div className="p-2">
-              <div className="grid grid-cols-4 gap-1">
-                {EMOJI_OPTIONS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    onClick={() => sendReaction(emoji)}
-                    disabled={isSendingReaction}
-                    className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 disabled:opacity-50 transition-all flex items-center justify-center text-xl"
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-1.5">
+      {/* Message Input - Modern Google Meet Style */}
+      <div className="px-4 pb-6 pt-3 border-t border-gray-700/50 sm:pb-7">
+        <div className="flex gap-2.5">
           <input
             type="text"
             value={inputMessage}
             onChange={(e) => setInputMessage(e.target.value)}
             placeholder={
               currentAccount?.address
-                ? 'Add comment...'
+                ? 'Type a message...'
                 : 'Connect wallet to chat'
             }
             disabled={!currentAccount?.address || isLoading}
@@ -303,11 +246,12 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
                 handleSendMessage(e as any);
               }
             }}
-            className="flex-1 px-4 py-2.5 bg-gray-800/80 backdrop-blur-sm rounded-full
-              text-white placeholder-white/60
-              outline-none text-sm font-medium font-['Outfit']
+            className="flex-1 px-4 py-3.5 bg-[#2d2d2f] rounded-full
+              text-white placeholder-white/50 text-sm
+              outline-none font-['Outfit'] font-medium
               disabled:opacity-50 disabled:cursor-not-allowed
-              focus:bg-gray-800/90 transition-colors"
+              focus:ring-2 focus:ring-[#1a73e8]/50 focus:bg-[#353537]
+              transition-all h-12"
           />
 
           {/* Send Button */}
@@ -315,46 +259,19 @@ export default function LiveChat({ roomName, isBroadcaster = false, streamId, cr
             type="button"
             onClick={handleSendMessage}
             disabled={!inputMessage.trim() || isLoading || !currentAccount?.address}
-            className="px-4 py-2.5 flex-shrink-0 bg-pink-500/90 backdrop-blur-sm rounded-full
-              text-white font-semibold font-['Outfit'] text-sm
-              hover:bg-pink-500
+            className="w-12 h-12 shrink-0 bg-[#1a73e8] hover:bg-[#1765cc] rounded-full
+              flex items-center justify-center
               disabled:opacity-50 disabled:cursor-not-allowed
-              transition-colors"
+              transition-all"
+            title="Send message"
           >
-            {isLoading ? '...' : 'Send'}
-          </button>
-
-          {/* Gift Icon Button - Only show for viewers, not broadcaster */}
-          {!isBroadcaster && (
-            <button
-              type="button"
-              onClick={() => setIsDonationModalOpen(true)}
-              disabled={!currentAccount?.address}
-              className="w-10 h-10 flex-shrink-0 bg-white/50
-                backdrop-blur-sm rounded-full
-                flex items-center justify-center
-                hover:bg-white/70
-                disabled:opacity-50 disabled:cursor-not-allowed
-                transition-all"
-              title="Send Gift"
-            >
-              <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+            {isLoading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
               </svg>
-            </button>
-          )}
-
-          {/* Emoji Reaction Button - After Gift button */}
-          <button
-            type="button"
-            onClick={() => setShowEmojiPanel(!showEmojiPanel)}
-            disabled={!currentAccount?.address}
-            className="w-10 h-10 flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/70 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-            title="React with emoji"
-          >
-            <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
+            )}
           </button>
         </div>
       </div>
