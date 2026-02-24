@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { StreamCard } from '@/components/StreamCard';
 
 interface Video {
   id: string;
@@ -29,18 +28,6 @@ interface Video {
   }>;
 }
 
-interface LiveStream {
-  id: string;
-  roomName: string;
-  title: string;
-  description?: string;
-  status: 'scheduled' | 'live' | 'ended';
-  creatorId: string;
-  viewerCount: number;
-  startedAt?: string;
-  endedAt?: string;
-  createdAt: string;
-}
 
 // Helper function to fix Walrus URLs
 const fixWalrusUrl = (url: string, network: string = 'mainnet'): string => {
@@ -224,9 +211,7 @@ const VideoCard = ({ video }: { video: Video }) => {
 
 export default function Home() {
   const [videos, setVideos] = useState<Video[]>([]);
-  const [liveStreams, setLiveStreams] = useState<LiveStream[]>([]);
   const [loading, setLoading] = useState(true);
-  const [streamsLoading, setStreamsLoading] = useState(true);
 
   useEffect(() => {
     const fetchVideos = async () => {
@@ -247,34 +232,12 @@ export default function Home() {
     fetchVideos();
   }, []);
 
-  useEffect(() => {
-    const fetchLiveStreams = async () => {
-      try {
-        const response = await fetch('/api/live/streams?status=live&limit=5');
-        if (response.ok) {
-          const data = await response.json();
-          console.log('[Watch] Live streams:', data.streams);
-          setLiveStreams(data.streams || []);
-        }
-      } catch (error) {
-        console.error('[Watch] Failed to fetch live streams:', error);
-      } finally {
-        setStreamsLoading(false);
-      }
-    };
-
-    fetchLiveStreams();
-
-    // Refresh live streams every 30 seconds
-    const interval = setInterval(fetchLiveStreams, 30000);
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="w-full min-h-screen bg-gradient-to-br from-[#0668A6] via-[#0668A6] to-[#1AAACE]">
       {/* Category Tabs */}
       <div className="px-16 pt-[51px] pb-4 flex items-center gap-4 overflow-x-auto flex-wrap">
-        {['All', 'Live', 'Memes', 'DeFi', 'Gaming', 'RWAs', 'Move'].map((cat, i) => (
+        {['All', 'Memes', 'DeFi', 'Gaming', 'RWAs', 'Move'].map((cat, i) => (
           <button
             key={cat}
             className={`px-6 py-2.5 rounded-full shadow-[3px_3px_0_0_black] outline outline-[3px] outline-offset-[-3px] ${
@@ -285,51 +248,6 @@ export default function Home() {
           </button>
         ))}
       </div>
-
-      {/* Live Now Section */}
-      {!streamsLoading && liveStreams.length > 0 && (
-        <div className="px-16 py-6 border-b-2 border-white/20">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <h2 className="text-white text-3xl font-bold font-['Outfit']">🔴 Live Now</h2>
-              <div className="px-3 py-1.5 bg-red-600 text-white text-sm font-bold rounded-full border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] animate-pulse">
-                {liveStreams.length} {liveStreams.length === 1 ? 'stream' : 'streams'}
-              </div>
-            </div>
-            <Link
-              href="/live/create"
-              className="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-500 rounded-[32px] text-white font-bold font-['Outfit']
-                shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
-                outline outline-2 outline-offset-[-2px] outline-black
-                hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
-                hover:translate-x-[1px]
-                hover:translate-y-[1px]
-                transition-all"
-            >
-              🎥 Start Streaming
-            </Link>
-          </div>
-
-          {/* Fixed grid layout - no horizontal scroll */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {liveStreams.map((stream) => (
-              <StreamCard
-                key={stream.id}
-                id={stream.id}
-                roomName={stream.roomName}
-                title={stream.title}
-                description={stream.description}
-                creator={stream.creatorId.slice(0, 8)}
-                creatorAddress={stream.creatorId}
-                status="live"
-                viewerCount={stream.viewerCount}
-                startedAt={stream.startedAt}
-                variant="featured"
-              />
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Video Grid */}
       <div className="px-16 py-6">
