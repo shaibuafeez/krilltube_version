@@ -22,6 +22,7 @@ export interface ProcessPaymentParams {
   userAddress: string;
   coinType?: string; // Optional: Override default coin type (e.g., '0x2::iota::IOTA' for native IOTA)
   videoId: string; // Video ID for backend payment processing
+  creatorAddress?: string; // Unused — kept for backwards compatibility
 }
 
 export async function processPayment({
@@ -144,30 +145,35 @@ export async function processPayment({
       throw error;
     }
   } else if (network === 'iota') {
-    // IOTA FLOW - Build transaction and process via backend
+    // IOTA FLOW - Sign on client, send to backend for execution via tunnel contract
     const tunnelPackageId = process.env.NEXT_PUBLIC_IOTA_TUNNEL_PACKAGE_ID;
     if (!tunnelPackageId) {
       throw new Error('IOTA payment system is not configured. Please contact support.');
     }
+
     const coinType = customCoinType || process.env.NEXT_PUBLIC_IOTA_DEMO_KRILL_COIN;
     if (!coinType) {
       throw new Error('No payment token configured for IOTA. Please contact support.');
     }
-    const rpcUrl = process.env.NEXT_PUBLIC_IOTA_RPC_URL || 'https://api.mainnet.iota.cafe';
 
-    console.log('[processPayment] IOTA Config:', { tunnelPackageId, coinType, rpcUrl });
+    if (!signTransaction) {
+      throw new Error('IOTA payments require signTransaction. Please reconnect your wallet.');
+    }
 
-    // Build IOTA transaction
+    console.log('[processPayment] IOTA Tunnel Config:', { tunnelPackageId, coinType, paymentAmount });
+
+    // Build IOTA transaction using tunnel contract
     const tx = new IotaTransaction();
     tx.setSender(userAddress);
 
-    // For IOTA, use the coinWithBalance helper
+    // Create coin with the exact payment amount
     const paymentCoin = iotaCoinWithBalance({
       balance: paymentAmount,
       type: coinType,
       useGasCoin: true
     })(tx);
 
+    // Call the tunnel contract's process_payment function
     tx.moveCall({
       target: `${tunnelPackageId}::tunnel::process_payment`,
       typeArguments: [coinType],
@@ -175,64 +181,26 @@ export async function processPayment({
         tx.object(creatorConfigId), // creator_config: &CreatorConfig
         tx.pure.address(referrerAddress), // referrer: address (use 0x0 for none)
         paymentCoin, // payment: Coin<T>
-        tx.object('0x6'), // clock: &Clock (0x6 is the Clock object ID)
+        tx.object('0x6'), // clock: &Clock
       ],
     });
 
-    console.log('[processPayment] IOTA transaction built, preparing to sign...');
+    console.log('[processPayment] IOTA tunnel tx built, requesting wallet signature...');
 
     try {
-      let transactionBytes: string;
-      let signature: string;
+      // Sign only — do NOT execute on chain
+      const { transactionBlockBytes, signature } = await signTransaction({ transaction: tx });
 
-      if (signTransaction) {
-        // Use signTransaction hook (signs but doesn't execute)
-        console.log('[processPayment] Signing transaction with signTransaction hook...');
-        const signResult = await signTransaction({ transaction: tx });
-        transactionBytes = signResult.transactionBlockBytes;
-        signature = signResult.signature;
-      } else {
-        // Fallback: build transaction bytes manually
-        console.log('[processPayment] Building transaction bytes...');
-        const client = new IotaClient({ url: rpcUrl });
-        const txBytes = await tx.build({ client });
+      console.log('[processPayment] IOTA tx signed, sending to backend for execution...');
 
-        // Convert Uint8Array to base64
-        const base64Encode = (bytes: Uint8Array): string => {
-          // Process in chunks to avoid "Maximum call stack size exceeded"
-          const CHUNK_SIZE = 8192;
-          let binary = '';
-          for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
-            const chunk = bytes.slice(i, i + CHUNK_SIZE);
-            binary += String.fromCharCode(...chunk);
-          }
-          return btoa(binary);
-        };
-        transactionBytes = base64Encode(txBytes);
-
-        // Request signature from wallet (this will execute, but we need the signature)
-        console.log('[processPayment] Requesting signature from wallet...');
-        const result = await signAndExecuteTransaction({ transaction: tx });
-
-        // Extract signature from result
-        // Note: This depends on the wallet implementation
-        signature = result.signature || '';
-
-        if (!signature) {
-          throw new Error('Failed to get signature from wallet. Please use a compatible IOTA wallet.');
-        }
-      }
-
-      console.log('[processPayment] Transaction signed, sending to backend for execution...');
-
-      // Send to backend for execution and validation
+      // Send signed transaction to backend for dry-run validation + execution
       const response = await fetch('/api/v1/payment/process-iota', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          transactionBytes,
+          transactionBytes: transactionBlockBytes,
           signature,
           videoId,
         }),
@@ -244,7 +212,7 @@ export async function processPayment({
       }
 
       const data = await response.json();
-      console.log('[processPayment] IOTA payment processed successfully!', data);
+      console.log('[processPayment] IOTA payment processed and recorded:', data);
 
       return data.digest;
     } catch (error) {
