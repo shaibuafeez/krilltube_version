@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { PaymentModal } from '@/components/modals/PaymentModal';
+import { ChainLogo } from '@/components/ChainLogo';
 
 interface PhotoContent {
   id: string;
@@ -537,7 +538,7 @@ const PhotoCard = ({
             <span className="text-black text-[16px] font-semibold font-['Outfit'] leading-[20px]">
               {photo.price ? formatPrice(photo.price.amount, photo.price.decimals) : '0'}
             </span>
-            <img src="/logos/sui-logo.png" alt="SUI" width={16} height={16} className="object-contain" />
+            <ChainLogo size={16} />
           </button>
         </div>
       </div>
@@ -920,7 +921,6 @@ export default function PhotosPage() {
             onPayWithToken={handlePayWithToken}
             onGetDemoTokens={handleGetDemoTokens}
             creatorConfigs={getCreatorConfigs()}
-            encryptionType="per-video"
           />
         </div>
       )}

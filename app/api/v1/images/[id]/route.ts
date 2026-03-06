@@ -11,6 +11,7 @@ import { decryptDek } from '@/lib/kms/envelope';
 import { aesGcmDecrypt } from '@/lib/crypto/primitives';
 import { cookies } from 'next/headers';
 import { verifyPersonalMessageSignature as verifySuiSignature } from '@mysten/sui/verify';
+import { verifyPersonalMessageSignature as verifyIotaSignature } from '@iota/iota-sdk/verify';
 
 export async function GET(
   request: NextRequest,
@@ -46,8 +47,9 @@ export async function GET(
         const publicKey = await verifySuiSignature(messageBytes, signature);
         isValid = publicKey.toSuiAddress() === address;
       } else if (chain === 'iota') {
-        // For IOTA, trust the wallet signature
-        isValid = true;
+        const messageBytes = new TextEncoder().encode(message);
+        const publicKey = await verifyIotaSignature(messageBytes, signature);
+        isValid = publicKey.toIotaAddress() === address;
       } else {
         return NextResponse.json(
           { error: `Unsupported chain: ${chain}` },

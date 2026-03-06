@@ -7,19 +7,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useEncryptedVideo } from '@/lib/player/useEncryptedVideo';
-import { useSealVideo } from '@/lib/player/useSealVideo';
 import Hls from 'hls.js';
 import Image from 'next/image';
 import { useWalletContext } from '@/lib/context/WalletContext';
 import { PaymentModal } from './modals/PaymentModal';
 import { NoKrillModal } from './modals/NoKrillModal';
-import { SubscriptionPrompt } from './modals/SubscriptionPrompt';
 import { ChainSelector } from './wallet/ChainSelector';
 import { Toast } from './ui/Toast';
 import { mintDemoKrill } from '@/lib/utils/mintDemoKrill';
 import { processPayment } from '@/lib/utils/processPayment';
 import { useSignAndExecuteTransaction as useSuiSignAndExecute } from '@mysten/dapp-kit';
-import { Transaction } from '@mysten/sui/transactions';
+import { useSignAndExecuteTransaction as useIotaSignAndExecute, useSignTransaction as useIotaSignTransaction } from '@iota/dapp-kit';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 
 // Initialize SuiClient for fetching coin metadata
@@ -34,13 +32,8 @@ export interface CustomVideoPlayerProps {
   posterUrl?: string; // Thumbnail/poster image URL (can be base64 data URL)
   className?: string;
   isFree?: boolean; // Free videos skip payment gate
-  // SEAL encryption props
-  encryptionType?: 'per-video' | 'subscription-acl' | 'both';
-  channelId?: string; // Creator's SEAL channel ID
   creatorAddress?: string;
   creatorName?: string;
-  channelPrice?: string;
-  channelChain?: string;
 }
 
 export function CustomVideoPlayer({
@@ -52,64 +45,16 @@ export function CustomVideoPlayer({
   posterUrl,
   className = '',
   isFree = false,
-  encryptionType = 'per-video',
-  channelId,
   creatorAddress,
   creatorName,
-  channelPrice,
-  channelChain,
 }: CustomVideoPlayerProps) {
-  // Subscription state
-  const [showSubscriptionPrompt, setShowSubscriptionPrompt] = useState(false);
-  const [isSubscribed, setIsSubscribed] = useState<boolean | null>(null);
-  const [subscriptionCheckComplete, setSubscriptionCheckComplete] = useState(false);
-  const [subscribing, setSubscribing] = useState(false);
-
-  // Determine which video hook to use based on encryption type
-  // For subscription-acl and 'both' videos: subscribers use SEAL decryption with wallet signing
-  // For per-video and 'both' videos: non-subscribers who paid use DEK decryption
-  // Rule: If subscribed → SEAL, if paid but not subscribed → DEK
-  const shouldUseSeal = (encryptionType === 'subscription-acl' || encryptionType === 'both') && isSubscribed === true;
-
-  console.log('[CustomVideoPlayer] Encryption type:', {
-    encryptionType,
-    isSubscribed,
-    shouldUseSeal,
-    channelId,
-  });
-
-  // SEAL hook for subscription-only videos (requires wallet signing)
-  const sealHook = useSealVideo({
-    videoId,
-    videoUrl,
-    channelId: channelId || '',
-    packageId: process.env.NEXT_PUBLIC_SEAL_PACKAGE_ID || '',
-    network,
-    enabled: subscriptionCheckComplete && shouldUseSeal, // Only initialize after subscription check completes AND user is subscribed
-    autoplay: false, // Don't autoplay until user signs
-    onReady: () => {
-      console.log('[SEAL] Video ready to play - session key signed');
-    },
-    onError: (err) => {
-      console.error('[SEAL] Video error:', err);
-    },
-    onAccessDenied: () => {
-      console.log('[SEAL] Access denied - showing subscription prompt');
-      setShowSubscriptionPrompt(true);
-    },
-    onSigningRequired: () => {
-      console.log('[SEAL] Wallet signing required - popup will appear');
-      // User will see wallet popup to sign session key
-    },
-  });
-
-  // DEK hook for per-video and "both" encryption types
+  // DEK hook for video decryption
   const dekHook = useEncryptedVideo({
     videoId,
     videoUrl,
     network,
     autoplay,
-    enabled: subscriptionCheckComplete && !shouldUseSeal, // Only initialize after subscription check completes AND this is NOT subscription-only with subscription
+    enabled: true,
     onReady: () => {
       console.log('[DEK] Video ready to play');
     },
@@ -122,8 +67,7 @@ export function CustomVideoPlayer({
     },
   });
 
-  // Select the appropriate hook based on encryption type
-  const activeHook = shouldUseSeal ? sealHook : dekHook;
+  const activeHook = dekHook;
 
   const {
     videoRef,
@@ -141,75 +85,14 @@ export function CustomVideoPlayer({
   // Wallet connection check
   const { isConnected, address, chain } = useWalletContext();
 
-  // Transaction signing hook
+  // Transaction signing hooks
   const { mutateAsync: signAndExecuteSui } = useSuiSignAndExecute();
+  const { mutateAsync: signAndExecuteIota } = useIotaSignAndExecute();
+  const { mutateAsync: signIotaTransaction } = useIotaSignTransaction();
 
   // Payment modal state
   const [showPaymentModal, setShowPaymentModal] = useState(false); // Start hidden, check payment first
   const [checkingPayment, setCheckingPayment] = useState(true); // Loading state for payment check
-
-  // Check subscription status for 'subscription-acl' and 'both' encryption types
-  useEffect(() => {
-    const checkSubscription = async () => {
-      // Skip if not subscription-based video
-      if (encryptionType !== 'both' && encryptionType !== 'subscription-acl') {
-        setIsSubscribed(null);
-        setSubscriptionCheckComplete(true);
-        return;
-      }
-
-      // Skip if no creator address or user not connected
-      if (!creatorAddress || !address) {
-        setIsSubscribed(false);
-        setSubscriptionCheckComplete(true);
-
-        // Show subscription prompt for subscription-only videos
-        if (encryptionType === 'subscription-acl') {
-          setShowSubscriptionPrompt(true);
-        }
-        return;
-      }
-
-      try {
-        console.log('[CustomVideoPlayer] Checking subscription status for creator:', creatorAddress);
-        const response = await fetch(`/api/v1/profile/${creatorAddress}`);
-
-        if (!response.ok) {
-          console.error('[CustomVideoPlayer] Failed to check subscription');
-          setIsSubscribed(false);
-          setSubscriptionCheckComplete(true);
-
-          // Show subscription prompt if not subscribed to subscription-only video
-          if (encryptionType === 'subscription-acl') {
-            setShowSubscriptionPrompt(true);
-          }
-          return;
-        }
-
-        const data = await response.json();
-        const subscribed = data.isSubscribed || false;
-        setIsSubscribed(subscribed);
-        setSubscriptionCheckComplete(true);
-        console.log('[CustomVideoPlayer] Subscription status:', subscribed);
-
-        // Show subscription prompt if not subscribed to subscription-only video
-        if (encryptionType === 'subscription-acl' && !subscribed) {
-          setShowSubscriptionPrompt(true);
-        }
-      } catch (error) {
-        console.error('[CustomVideoPlayer] Error checking subscription:', error);
-        setIsSubscribed(false);
-        setSubscriptionCheckComplete(true);
-
-        // Show subscription prompt if error checking subscription-only video
-        if (encryptionType === 'subscription-acl') {
-          setShowSubscriptionPrompt(true);
-        }
-      }
-    };
-
-    checkSubscription();
-  }, [encryptionType, creatorAddress, address]);
 
   // No Krill modal state
   const [showNoKrillModal, setShowNoKrillModal] = useState(false);
@@ -244,40 +127,13 @@ export function CustomVideoPlayer({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Check if user has already paid for this video (only for DEK videos)
+  // Check if user has already paid for this video
   useEffect(() => {
     const checkPaymentStatus = async () => {
-      // Skip payment check for free videos
       if (isFree) {
         console.log('[CustomVideoPlayer] Free video - skipping payment check');
         setCheckingPayment(false);
         return;
-      }
-
-      // Skip payment check for subscription-only videos
-      if (encryptionType === 'subscription-acl') {
-        console.log('[CustomVideoPlayer] Subscription-only video - skipping payment check');
-        setCheckingPayment(false);
-        return;
-      }
-
-      // For 'both' type, wait for subscription check to complete
-      if (encryptionType === 'both') {
-        // If still checking subscription, wait
-        if (isSubscribed === null) {
-          console.log('[CustomVideoPlayer] Waiting for subscription check to complete...');
-          return; // Don't set checkingPayment to false yet
-        }
-
-        // If user is subscribed, skip payment check
-        if (isSubscribed === true) {
-          console.log('[CustomVideoPlayer] User is subscribed - skipping payment check');
-          setCheckingPayment(false);
-          return;
-        }
-
-        // If not subscribed, continue to payment check
-        console.log('[CustomVideoPlayer] User not subscribed - checking payment status');
       }
 
       if (!videoId) {
@@ -325,7 +181,7 @@ export function CustomVideoPlayer({
     };
 
     checkPaymentStatus();
-  }, [videoId, address, chain, encryptionType, isSubscribed, play]);
+  }, [videoId, address, chain, isFree, play]);
 
   // Fetch creator configs for both payment methods
   useEffect(() => {
@@ -508,12 +364,18 @@ export function CustomVideoPlayer({
         pricePerView: config.pricePerView,
       });
 
+      const signFn = chain === 'iota' ? signAndExecuteIota : signAndExecuteSui;
+
       const digest = await processPayment({
-        network: config.chain as 'sui' | 'iota',
+        network: chain as 'sui' | 'iota',
         creatorConfigId: config.objectId,
         referrerAddress: '0x0', // No referrer
         paymentAmount: parseInt(config.pricePerView),
-        signAndExecuteTransaction: async (args) => await signAndExecuteSui(args as any),
+        signAndExecuteTransaction: async (args) => await signFn(args as any),
+        signTransaction: chain === 'iota' ? async (args) => {
+          const result = await signIotaTransaction({ transaction: args.transaction as any });
+          return { transactionBlockBytes: result.bytes, signature: result.signature };
+        } : undefined,
         userAddress: address,
         coinType: coinType, // Pass the specific coin type
         videoId,
@@ -521,10 +383,14 @@ export function CustomVideoPlayer({
 
       console.log('[CustomVideoPlayer] Payment successful! Digest:', digest);
 
+      const explorerUrl = chain === 'iota'
+        ? `https://explorer.iota.org/mainnet/txblock/${digest}`
+        : `https://suiscan.xyz/mainnet/tx/${digest}`;
+
       setToast({
         message: 'Payment successful! Refreshing page...',
         type: 'success',
-        link: `https://suiscan.xyz/mainnet/tx/${digest}`
+        link: explorerUrl
       });
       setShowPaymentModal(false);
       setCheckingPayment(false);
@@ -558,26 +424,26 @@ export function CustomVideoPlayer({
       return;
     }
 
-    if (chain !== 'sui') {
-      setToast({ message: 'Please connect Sui wallet to mint demo tokens', type: 'error' });
-      return;
-    }
-
     try {
-      console.log('[CustomVideoPlayer] Minting demo tokens on SUI...', { address });
+      const signFn = chain === 'iota' ? signAndExecuteIota : signAndExecuteSui;
+      console.log(`[CustomVideoPlayer] Minting demo tokens on ${chain?.toUpperCase()}...`, { address });
 
       const digest = await mintDemoKrill({
-        network: 'sui',
+        network: chain as 'sui' | 'iota',
         recipientAddress: address,
-        signAndExecuteTransaction: async (args) => await signAndExecuteSui(args as any),
+        signAndExecuteTransaction: async (args) => await signFn(args as any),
       });
 
       console.log('[CustomVideoPlayer] Mint successful! Digest:', digest);
 
+      const explorerUrl = chain === 'iota'
+        ? `https://explorer.iota.org/mainnet/txblock/${digest}`
+        : `https://suiscan.xyz/mainnet/tx/${digest}`;
+
       setToast({
         message: '1000 dKRILL tokens minted! Click to view transaction',
         type: 'success',
-        link: `https://suiscan.xyz/mainnet/tx/${digest}`
+        link: explorerUrl
       });
 
       // Close the No Krill modal and show the payment modal again
@@ -589,111 +455,6 @@ export function CustomVideoPlayer({
         message: error instanceof Error ? error.message : 'Failed to mint tokens',
         type: 'error'
       });
-    }
-  };
-
-  // Handle subscription
-  const handleSubscribe = async () => {
-    try {
-      setSubscribing(true);
-
-      if (!isConnected || !address) {
-        setToast({ message: 'Please connect your wallet first', type: 'error' });
-        return;
-      }
-
-      if (!channelId || !channelPrice) {
-        setToast({ message: 'Subscription not available for this creator', type: 'error' });
-        return;
-      }
-
-      const packageId = process.env.NEXT_PUBLIC_SEAL_PACKAGE_ID;
-      if (!packageId || packageId === '0x0') {
-        setToast({ message: 'SEAL package not configured', type: 'error' });
-        return;
-      }
-
-      // Parse price (e.g., "10 SUI" -> 10000000000 MIST)
-      const priceMatch = channelPrice.match(/(\d+(?:\.\d+)?)/);
-      if (!priceMatch) {
-        setToast({ message: 'Invalid channel price format', type: 'error' });
-        return;
-      }
-      const priceInSui = parseFloat(priceMatch[1]);
-      const priceInMist = Math.floor(priceInSui * 1_000_000_000);
-
-      console.log('[CustomVideoPlayer] Building subscription transaction:', {
-        channelId,
-        priceInSui,
-        priceInMist,
-        packageId,
-      });
-
-      // Build subscription transaction
-      const tx = new Transaction();
-      tx.setSender(address);
-
-      const { coinWithBalance } = await import('@mysten/sui/transactions');
-      const paymentCoin = coinWithBalance({
-        balance: priceInMist,
-        type: '0x2::sui::SUI',
-      })(tx);
-
-      tx.moveCall({
-        target: `${packageId}::creator_channel::subscribe_entry`,
-        arguments: [
-          tx.object(channelId), // channel
-          paymentCoin, // payment
-          tx.object('0x6'), // clock
-        ],
-      });
-
-      console.log('[CustomVideoPlayer] Signing subscription transaction...');
-
-      // Sign and execute
-      const result = await signAndExecuteSui({ transaction: tx });
-
-      console.log('[CustomVideoPlayer] Subscription transaction successful:', result.digest);
-
-      // Save to database
-      const response = await fetch('/api/v1/subscriptions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          creatorAddress: creatorAddress,
-          txDigest: result.digest,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save subscription');
-      }
-
-      console.log('[CustomVideoPlayer] Subscription saved to database');
-
-      // Update UI
-      setIsSubscribed(true);
-      setShowSubscriptionPrompt(false);
-      setToast({
-        message: 'Successfully subscribed! Refreshing page...',
-        type: 'success',
-        link: `https://suiscan.xyz/mainnet/tx/${result.digest}`
-      });
-
-      // Refresh page to reload with subscription access
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-
-    } catch (error) {
-      console.error('[CustomVideoPlayer] Subscription failed:', error);
-      setToast({
-        message: error instanceof Error ? error.message : 'Subscription failed',
-        type: 'error'
-      });
-    } finally {
-      setSubscribing(false);
     }
   };
 
@@ -793,14 +554,8 @@ export function CustomVideoPlayer({
             isOpen={showPaymentModal}
             onClose={() => setShowPaymentModal(false)}
             onPayWithToken={handlePayWithToken}
-            onSubscribe={() => {
-              setShowPaymentModal(false);
-              setShowSubscriptionPrompt(true);
-            }}
             onGetDemoTokens={handleGetDemoTokens}
             creatorConfigs={creatorConfigs}
-            subscriptionPrice={channelPrice}
-            encryptionType={encryptionType}
           />
         )}
 
@@ -813,20 +568,6 @@ export function CustomVideoPlayer({
               setShowPaymentModal(true);
             }}
             onGetDemoTokens={handleGetDemoTokens}
-          />
-        )}
-
-        {/* Subscription Prompt - Shows when user tries to watch subscriber-only content */}
-        {showSubscriptionPrompt && isConnected && (
-          <SubscriptionPrompt
-            isOpen={showSubscriptionPrompt}
-            onClose={() => setShowSubscriptionPrompt(false)}
-            onSubscribe={handleSubscribe}
-            subscribing={subscribing}
-            creatorName={creatorName || 'Creator'}
-            creatorAddress={creatorAddress || ''}
-            channelPrice={channelPrice}
-            channelChain={channelChain}
           />
         )}
 

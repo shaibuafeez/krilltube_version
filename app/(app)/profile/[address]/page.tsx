@@ -6,10 +6,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { VideoCard } from '@/components/VideoCard';
 import { useWalletContext } from '@/lib/context/WalletContext';
-import { useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-import { Transaction } from '@mysten/sui/transactions';
-import { suiToMist } from '@/lib/seal';
-import { Toast } from '@/components/ui/Toast';
 
 interface CreatorProfile {
   id: string;
@@ -20,9 +16,6 @@ interface CreatorProfile {
   createdAt: string;
   videoCount: number;
   subscriberCount: number;
-  channelPrice: string | null;
-  channelChain: string | null;
-  sealObjectId?: string | null;
 }
 
 interface Video {
@@ -43,16 +36,10 @@ export default function ProfilePage() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [subscribing, setSubscribing] = useState(false);
-  const [subscribeError, setSubscribeError] = useState<string | null>(null);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   // Check if this is the user's own profile
   const isOwnProfile = userAddress?.toLowerCase() === address?.toLowerCase();
 
-  // Sui transaction signing
-  const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -68,7 +55,7 @@ export default function ProfilePage() {
         const data = await response.json();
         setProfile(data.profile);
         setVideos(data.videos || []);
-        setIsSubscribed(data.isSubscribed || false);
+
       } catch (err) {
         console.error('Failed to fetch profile:', err);
         setError(err instanceof Error ? err.message : 'Failed to load profile');
@@ -82,117 +69,6 @@ export default function ProfilePage() {
     }
   }, [address]);
 
-  const handleSubscribe = async () => {
-    try {
-      setSubscribing(true);
-      setSubscribeError(null);
-
-      // Check wallet connection
-      if (!isConnected || !userAddress) {
-        setSubscribeError('Please connect your wallet first');
-        return;
-      }
-
-      // Validate profile and channel
-      if (!profile || !profile.sealObjectId || !profile.channelPrice) {
-        setSubscribeError('Subscription not available for this creator');
-        return;
-      }
-
-      // Get SEAL package ID from environment
-      const packageId = process.env.NEXT_PUBLIC_SEAL_PACKAGE_ID;
-      if (!packageId || packageId === '0x0') {
-        setSubscribeError('SEAL package not configured. Please contact support.');
-        return;
-      }
-
-      console.log('[Subscribe] Starting subscription process:', {
-        creator: profile.walletAddress,
-        channelId: profile.sealObjectId,
-        price: profile.channelPrice,
-      });
-
-      // Parse price (e.g., "10 SUI" -> 10)
-      const priceMatch = profile.channelPrice.match(/(\d+(?:\.\d+)?)/);
-      if (!priceMatch) {
-        setSubscribeError('Invalid channel price format');
-        return;
-      }
-      const priceInSui = parseFloat(priceMatch[1]);
-      const priceInMist = Math.floor(priceInSui * 1_000_000_000); // Convert to MIST (u64)
-
-      console.log('[Subscribe] Parsed price:', {
-        priceInSui,
-        priceInMist,
-        channelPrice: profile.channelPrice
-      });
-
-      // Build subscription transaction
-      const tx = new Transaction();
-      tx.setSender(userAddress);
-
-      // Use coinWithBalance to create payment coin from gas
-      const { coinWithBalance } = await import('@mysten/sui/transactions');
-      const paymentCoin = coinWithBalance({
-        balance: priceInMist,
-        type: '0x2::sui::SUI',
-      })(tx);
-
-      // Call subscribe_entry function
-      tx.moveCall({
-        target: `${packageId}::creator_channel::subscribe_entry`,
-        arguments: [
-          tx.object(profile.sealObjectId), // channel
-          paymentCoin, // payment
-          tx.object('0x6'), // clock
-        ],
-      });
-
-      console.log('[Subscribe] Transaction built, requesting signature...');
-
-      // Sign and execute transaction
-      const result = await signAndExecuteTransaction({
-        transaction: tx,
-      });
-
-      console.log('[Subscribe] Transaction successful:', result.digest);
-
-      // Save subscription to database
-      console.log('[Subscribe] Saving subscription to database...');
-      const response = await fetch('/api/v1/subscriptions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          creatorAddress: profile.walletAddress,
-          txDigest: result.digest,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save subscription');
-      }
-
-      const subscriptionData = await response.json();
-      console.log('[Subscribe] Subscription saved:', subscriptionData);
-
-      // Update UI
-      setIsSubscribed(true);
-      setSubscribeError(null);
-
-      // Show success toast
-      setShowSuccessToast(true);
-    } catch (error) {
-      console.error('[Subscribe] Error:', error);
-      setSubscribeError(
-        error instanceof Error ? error.message : 'Failed to subscribe. Please try again.'
-      );
-    } finally {
-      setSubscribing(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -333,54 +209,6 @@ export default function ProfilePage() {
                   </Link>
                 )}
 
-                {/* Subscribe Button (Other's Profile) */}
-                {!isOwnProfile && profile.channelPrice && (
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-4">
-                      <button
-                        onClick={handleSubscribe}
-                        disabled={isSubscribed || subscribing || !isConnected}
-                        className={`px-8 py-3 rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black transition-all ${
-                          isSubscribed || subscribing || !isConnected
-                            ? 'bg-black text-white cursor-not-allowed'
-                            : 'bg-[#EF4330] text-white hover:bg-[#EF4330]/90 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px]'
-                        }`}
-                      >
-                        <div className="text-base font-bold font-['Outfit'] flex items-center gap-2">
-                          {subscribing ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                              Subscribing...
-                            </>
-                          ) : isSubscribed ? (
-                            'Subscribed'
-                          ) : !isConnected ? (
-                            'Connect Wallet to Subscribe'
-                          ) : (
-                            `Subscribe for ${profile.channelPrice}`
-                          )}
-                        </div>
-                      </button>
-
-                      {isSubscribed && (
-                        <div className="px-4 py-2 bg-white rounded-full outline outline-1 outline-offset-[-1px] outline-black">
-                          <div className="text-black text-sm font-semibold font-['Outfit']">
-                            ✓ Access to all videos
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Error Message */}
-                    {subscribeError && (
-                      <div className="px-4 py-2 bg-red-100 rounded-lg border-2 border-red-500">
-                        <p className="text-red-700 text-sm font-medium font-['Outfit']">
-                          {subscribeError}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -440,15 +268,6 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Success Toast */}
-      {showSuccessToast && (
-        <Toast
-          message="Successfully subscribed! You now have access to all videos from this creator."
-          type="success"
-          duration={5000}
-          onClose={() => setShowSuccessToast(false)}
-        />
-      )}
     </div>
   );
 }

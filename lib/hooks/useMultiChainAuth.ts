@@ -7,8 +7,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useCurrentAccount as useSuiAccount, useSignPersonalMessage as useSuiSignMessage } from '@mysten/dapp-kit';
-// IOTA disabled - using Sui/Walrus only
-// import { useCurrentAccount as useIotaAccount, useSignPersonalMessage as useIotaSignMessage } from '@iota/dapp-kit';
+import { useCurrentAccount as useIotaAccount, useSignPersonalMessage as useIotaSignMessage } from '@iota/dapp-kit';
 import { useWalletContext } from '@/lib/context/WalletContext';
 import Cookies from 'js-cookie';
 
@@ -30,10 +29,10 @@ export interface MultiChainAuthState {
 export function useMultiChainAuth() {
   const { chain: activeChain, address } = useWalletContext();
   const suiAccount = useSuiAccount();
-  const iotaAccount = null; // IOTA disabled
+  const iotaAccount = useIotaAccount();
 
   const { mutateAsync: signSuiMessage } = useSuiSignMessage();
-  const signIotaMessage = null; // IOTA disabled
+  const { mutateAsync: signIotaMessage } = useIotaSignMessage();
 
   const [authState, setAuthState] = useState<MultiChainAuthState>({
     isAuthenticated: false,
@@ -105,9 +104,10 @@ export function useMultiChainAuth() {
       if (activeChain === 'sui') {
         result = await signSuiMessage({ message: messageBytes });
         signature = result.signature;
-      }
-      // IOTA disabled - using Sui/Walrus only
-      else {
+      } else if (activeChain === 'iota') {
+        result = await signIotaMessage({ message: messageBytes });
+        signature = result.signature;
+      } else {
         throw new Error(`Unsupported chain: ${activeChain}`);
       }
 

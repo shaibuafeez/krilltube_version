@@ -6,12 +6,12 @@
  */
 
 import { useRouter } from 'next/navigation';
-import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useWalletContext } from '@/lib/context/WalletContext';
 import { ChainSelector } from '@/components/wallet/ChainSelector';
 
 export default function UploadLandingPage() {
   const router = useRouter();
-  const account = useCurrentAccount();
+  const { address } = useWalletContext();
 
   const uploadOptions = [
     {
@@ -58,13 +58,13 @@ export default function UploadLandingPage() {
             Upload Content
           </h1>
           <p className="text-xl text-white/80 font-medium font-['Outfit']">
-            {account?.address
+            {address
               ? 'Choose the type of content you want to upload'
               : 'Connect your wallet to start uploading'}
           </p>
         </div>
 
-        {account?.address ? (
+        {address ? (
           <>
             {/* Upload Options Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { ChainLogo } from '@/components/ChainLogo';
 
 interface Scroll {
   id: string;
@@ -159,7 +160,7 @@ const ScrollCard = ({ scroll }: { scroll: Scroll }) => {
           <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-0">
               <span className="text-black text-[18px] font-semibold font-['Outfit'] leading-[22px]">{scroll.price}</span>
-              <img src="/logos/sui-logo.png" alt="SUI" width={18} height={18} className="object-contain" />
+              <ChainLogo size={18} />
             </div>
             <Link
               href={`/scrolls/${scroll.id}`}

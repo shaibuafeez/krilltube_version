@@ -1,70 +1,28 @@
 /**
- * useCurrentWalletMultiChain - Abstracted hook for multi-chain wallet access
- * Returns the current network and respective wallet objects
+ * useCurrentWalletMultiChain — IOTA only
+ * Returns the IOTA wallet. suiWallet is always null (kept for API compat).
  */
 
 'use client';
 
-import { useCurrentWallet as useSuiCurrentWallet } from '@mysten/dapp-kit';
-// IOTA disabled - using Sui/Walrus only
-// import { useCurrentWallet as useIotaCurrentWallet } from '@iota/dapp-kit';
+import { useCurrentWallet as useIotaCurrentWallet } from '@iota/dapp-kit';
 import { useWalletContext } from '@/lib/context/WalletContext';
 
 export type WalletNetwork = 'sui' | 'iota' | null;
 
-// Placeholder type for IOTA wallet (disabled but kept for future re-enablement)
-type IotaWalletType = {
-  name?: string;
-  accounts?: Array<{ address: string }>;
-} | null;
-
 export interface MultiChainWalletState {
   network: WalletNetwork;
-  suiWallet: ReturnType<typeof useSuiCurrentWallet>['currentWallet'] | null;
-  iotaWallet: IotaWalletType; // IOTA disabled - always null at runtime
+  suiWallet: null;
+  iotaWallet: ReturnType<typeof useIotaCurrentWallet>['currentWallet'] | null;
 }
 
-/**
- * Hook to get the current wallet for whichever chain is connected
- *
- * @returns {MultiChainWalletState} Object containing:
- *  - network: 'sui' | 'iota' | null - The currently active network
- *  - suiWallet: Wallet object if Sui is connected, null otherwise
- *  - iotaWallet: Wallet object if IOTA is connected, null otherwise
- *
- * @example
- * ```tsx
- * const { network, suiWallet, iotaWallet } = useCurrentWalletMultiChain();
- *
- * if (network === 'sui' && suiWallet) {
- *   // Use Sui wallet
- *   console.log('Sui wallet:', suiWallet.name);
- * } else if (network === 'iota' && iotaWallet) {
- *   // Use IOTA wallet
- *   console.log('IOTA wallet:', iotaWallet.name);
- * }
- * ```
- */
 export function useCurrentWalletMultiChain(): MultiChainWalletState {
   const { chain } = useWalletContext();
-  const { currentWallet: suiWallet } = useSuiCurrentWallet();
-
-  // Determine network based on context and wallet connections
-  let network: WalletNetwork = chain;
-
-  // Auto-detect if no active chain is set - default to Sui
-  if (!network) {
-    if (suiWallet) {
-      network = 'sui';
-    } else {
-      // Default to Sui even if no wallet is connected
-      network = 'sui';
-    }
-  }
+  const { currentWallet: iotaWallet } = useIotaCurrentWallet();
 
   return {
-    network,
-    suiWallet: network === 'sui' ? suiWallet : null,
-    iotaWallet: null, // IOTA disabled
+    network: chain,
+    suiWallet: null,
+    iotaWallet: chain === 'iota' ? iotaWallet : null,
   };
 }

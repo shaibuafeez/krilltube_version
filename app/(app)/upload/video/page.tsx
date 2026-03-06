@@ -9,8 +9,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-// IOTA disabled - using Sui/Walrus only
-// import { useSignAndExecuteTransaction as useIotaSignAndExecuteTransaction } from '@iota/dapp-kit';
+import { useSignAndExecuteTransaction as useIotaSignAndExecuteTransaction } from '@iota/dapp-kit';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { useNetwork } from '@/contexts/NetworkContext';
 import { UploadNetworkSwitcher } from '@/components/UploadNetworkSwitcher';
@@ -99,9 +98,7 @@ function UploadContent() {
   const account = useCurrentAccount();
   const { network, suiWallet, iotaWallet } = useCurrentWalletMultiChain();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
-  // IOTA disabled - using Sui/Walrus only
-  // const { mutateAsync: iotaSignAndExecuteTransaction } = useIotaSignAndExecuteTransaction();
-  const iotaSignAndExecuteTransaction: any = null; // IOTA disabled
+  const { mutateAsync: iotaSignAndExecuteTransaction } = useIotaSignAndExecuteTransaction();
   const { walrusNetwork } = useNetwork();
   const { buildFundingTransaction, estimateGasNeeded, autoReclaimGas, executeWithDelegator, delegatorAddress } = usePersonalDelegator();
 
@@ -171,8 +168,6 @@ function UploadContent() {
   const [storageOptionIndex, setStorageOptionIndex] = useState<number>(0); // Index into STORAGE_OPTIONS (default: 1 day) - for mainnet
   const [testnetStorageDays, setTestnetStorageDays] = useState<number>(7); // 1-53 days for testnet (default: 7 days)
   const [referrerSharePercent, setReferrerSharePercent] = useState<number>(30); // 0-90% (platform always takes 10%, default: 30%)
-  const [encryptionType, setEncryptionType] = useState<'per-video' | 'subscription-acl' | 'both'>('per-video'); // Encryption type for video
-  const [creatorProfile, setCreatorProfile] = useState<any>(null); // Creator profile with sealObjectId
   const [isTranscoding, setIsTranscoding] = useState(false);
   const [transcodingProgress, setTranscodingProgress] = useState<number>(0);
   const [transcodedData, setTranscodedData] = useState<any>(null); // Store transcoded video data
@@ -260,33 +255,6 @@ function UploadContent() {
     ? { address: iotaWallet.accounts?.[0]?.address || '' }
     : account;
 
-  // Fetch creator profile to get sealObjectId
-  useEffect(() => {
-    const fetchCreatorProfile = async () => {
-      if (effectiveAccount?.address && !debugMode) {
-        try {
-          const response = await fetch(`/api/v1/profile/${effectiveAccount.address}`);
-          if (response.ok) {
-            const data = await response.json();
-            setCreatorProfile(data.profile);
-            console.log('[Upload] Creator profile loaded:', data.profile);
-          }
-        } catch (error) {
-          console.error('[Upload] Failed to fetch creator profile:', error);
-        }
-      }
-    };
-
-    fetchCreatorProfile();
-  }, [effectiveAccount?.address, debugMode]);
-
-  // Auto-select "both" encryption type if user has subscription configured
-  useEffect(() => {
-    if (creatorProfile?.sealObjectId) {
-      console.log('[Upload] Subscription configured, defaulting to "both" encryption type');
-      setEncryptionType('both');
-    }
-  }, [creatorProfile]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -672,7 +640,7 @@ function UploadContent() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [selectedFile, selectedQualities, storageOptionIndex, testnetStorageDays, walrusNetwork, encryptionType]);
+  }, [selectedFile, selectedQualities, storageOptionIndex, testnetStorageDays, walrusNetwork]);
 
   const handleEstimateCost = async () => {
     if (!selectedFile || selectedQualities.length === 0) return;
@@ -692,7 +660,7 @@ function UploadContent() {
           // Cap epochs to network-specific maximums (testnet: 53, mainnet: 53)
           epochs: walrusNetwork === 'mainnet' ? storageEpochs : Math.min(storageEpochs, 53),
           network: walrusNetwork, // Pass network to get accurate Walrus SDK pricing
-          encryptionType, // Include encryption type for accurate cost calculation
+          encryptionType: 'per-video',
         }),
       });
 
@@ -744,7 +712,7 @@ function UploadContent() {
         metadata?: string;
       }> = [];
 
-      if (feeConfigs.length > 0 && !debugMode && network) {
+      if (feeConfigs.length > 0 && !isFree && !debugMode && network) {
         console.log(`[Upload V2] Creating ${network.toUpperCase()} creator config...`);
         setProgress({ stage: 'registering', percent: 2, message: 'Creating monetization config...' });
 
@@ -890,7 +858,7 @@ function UploadContent() {
         const videoSegments = Math.ceil(fileSizeMB / 2) * selectedQualities.length;
         const initSegments = selectedQualities.length; // One init segment per quality
         const estimatedSegments = videoSegments + initSegments;
-        const gasNeeded = estimateGasNeeded(estimatedSegments, encryptionType);
+        const gasNeeded = estimateGasNeeded(estimatedSegments, 'per-video');
 
         // Calculate WAL amount in MIST (1 WAL = 1_000_000_000 MIST)
         // Our cost estimate is now based on real upload measurements (~0.05 WAL/MB)
@@ -907,24 +875,16 @@ function UploadContent() {
         const minWalPerSegment = BigInt(10_000_000); // 0.01 WAL per segment
         let minWalMist = minWalPerSegment * BigInt(estimatedSegments + 5); // +5 for poster/playlists
 
-        // For "both" encryption, we upload everything twice (DEK + SEAL)
-        // Each upload has: segments + poster + playlists, so double the WAL needed
-        if (encryptionType === 'both') {
-          minWalMist = minWalMist * BigInt(2); // 2x for dual upload
-          console.log('[Upload V2] Both encryption detected, doubling WAL funding');
-        }
-
         // Use the larger of buffered estimate or minimum
         const walAmountMist = bufferedWalMist > minWalMist ? bufferedWalMist : minWalMist;
 
         console.log('[Upload V2] PTB Funding:', {
           estimatedWal: `${parseFloat(costEstimate.totalWal).toFixed(6)} WAL`,
           bufferedWal: `${Number(bufferedWalMist) / 1_000_000_000} WAL (5x buffer)`,
-          minimumWal: `${Number(minWalMist) / 1_000_000_000} WAL (${estimatedSegments} segments${encryptionType === 'both' ? ' × 2 uploads' : ''})`,
+          minimumWal: `${Number(minWalMist) / 1_000_000_000} WAL (${estimatedSegments} segments)`,
           finalWalAmount: `${Number(walAmountMist) / 1_000_000_000} WAL`,
           gasAmount: `${Number(gasNeeded) / 1_000_000_000} SUI`,
           segments: `${estimatedSegments} total (${videoSegments} video + ${initSegments} init)`,
-          encryptionType,
         });
 
         try {
@@ -995,8 +955,7 @@ function UploadContent() {
         effectiveSignAndExecute,
         effectiveUploadAddress,
         {
-          encryptionType, // 'per-video', 'subscription-acl', or 'both'
-          creatorSealObjectId: creatorProfile?.sealObjectId || undefined,
+          encryptionType: 'per-video',
           network: walrusNetwork, // Dynamic Walrus network from context
           // Cap epochs to network-specific maximums (testnet: 53, mainnet: 53)
           epochs: walrusNetwork === 'mainnet' ? storageEpochs : Math.min(storageEpochs, 53),
@@ -1006,71 +965,9 @@ function UploadContent() {
 
       console.log('[Upload V2] ✓ Upload processing complete');
 
-      // Extract and merge upload results based on encryption type
-      let primaryResult;
-      let mergedRenditions;
-
-      if (encryptionType === 'subscription-acl') {
-        // SEAL only
-        primaryResult = result.sealUpload;
-        mergedRenditions = result.sealUpload?.renditions;
-      } else if (encryptionType === 'per-video') {
-        // DEK only
-        primaryResult = result.dekUpload;
-        mergedRenditions = result.dekUpload?.renditions;
-      } else if (encryptionType === 'both') {
-        // Merge DEK + SEAL metadata
-        if (!result.dekUpload || !result.sealUpload) {
-          throw new Error('Upload failed - both DEK and SEAL uploads are required for "both" encryption type');
-        }
-
-        console.log('[Upload V2] Merging DEK and SEAL upload results...');
-        primaryResult = result.dekUpload; // Use DEK as base
-
-        // Merge segment metadata from both uploads
-        mergedRenditions = result.dekUpload.renditions.map((dekRendition) => {
-          // Find matching SEAL rendition
-          const sealRendition = result.sealUpload!.renditions.find(
-            (r) => r.quality === dekRendition.quality
-          );
-
-          if (!sealRendition) {
-            console.warn(`[Upload V2] No matching SEAL rendition for ${dekRendition.quality}`);
-            return {
-              ...dekRendition,
-              segments: dekRendition.segments,
-            };
-          }
-
-          // Merge segments: DEK metadata + SEAL metadata
-          const mergedSegments = dekRendition.segments.map((dekSegment) => {
-            const sealSegment = sealRendition.segments.find(
-              (s) => s.segIdx === dekSegment.segIdx
-            );
-
-            if (!sealSegment) {
-              console.warn(`[Upload V2] No matching SEAL segment for ${dekRendition.quality} seg ${dekSegment.segIdx}`);
-              return dekSegment;
-            }
-
-            // Combine both DEK and SEAL metadata
-            return {
-              ...dekSegment, // Has: segIdx, walrusUri, dek, iv, duration, size, blobObjectId
-              sealDocumentId: sealSegment.sealDocumentId, // Add SEAL metadata
-              sealBlobId: sealSegment.sealBlobId,
-            };
-          });
-
-          return {
-            ...dekRendition,
-            segments: mergedSegments,
-          };
-        });
-
-        console.log('[Upload V2] ✓ Merged DEK and SEAL metadata for all segments');
-      } else {
-        throw new Error(`Invalid encryption type: ${encryptionType}`);
-      }
+      // Extract upload results (per-video DEK encryption)
+      const primaryResult = result.dekUpload;
+      const mergedRenditions = result.dekUpload?.renditions;
 
       if (!primaryResult) {
         throw new Error('Upload failed - no result returned');
@@ -1096,8 +993,7 @@ function UploadContent() {
           duration: primaryResult.duration,
           network: walrusNetwork, // Save the network used for upload
           isFree, // Free videos skip payment gate
-          encryptionType, // Store encryption type for playback
-          sealObjectId: creatorProfile?.sealObjectId, // Store channel ID for SEAL videos
+          encryptionType: 'per-video',
           renditions: (mergedRenditions || primaryResult.renditions).map((r) => ({
             name: r.quality,
             resolution: r.resolution,
@@ -1384,93 +1280,6 @@ function UploadContent() {
           {/* Step 2: Monetization Settings */}
           {currentStep === 2 && (
             <div className="p-6 bg-[#FFEEE5] rounded-[32px] shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)] outline outline-[3px] outline-offset-[-3px] outline-black flex flex-col gap-6">
-              {/* Encryption Type Selector */}
-              <div className="p-6 bg-white rounded-2xl shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black">
-                <h3 className="text-lg font-bold font-['Outfit'] text-black mb-2">Video Encryption Type</h3>
-                <p className="text-sm font-medium font-['Outfit'] text-black/70 mb-4">
-                  Choose how viewers can access this video
-                </p>
-
-                <div className="space-y-3">
-                  {/* Per-Video (DEK) */}
-                  <label className="flex items-start gap-4 p-4 bg-white rounded-xl border-2 border-black cursor-pointer hover:bg-[#FFEEE5] transition-colors">
-                    <div className="flex items-center h-6">
-                      <input
-                        type="radio"
-                        name="encryptionType"
-                        value="per-video"
-                        checked={encryptionType === 'per-video'}
-                        onChange={(e) => setEncryptionType(e.target.value as any)}
-                        className="w-5 h-5 cursor-pointer accent-krill-orange"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-base font-bold font-['Outfit'] text-black mb-1">
-                        Pay-Per-View (Standard)
-                      </div>
-                      <div className="text-sm font-medium font-['Outfit'] text-black/70">
-                        Users pay the configured price each time they watch. Best for one-time premium content.
-                      </div>
-                    </div>
-                  </label>
-
-                  {/* Subscription-ACL (SEAL) */}
-                  <label className="flex items-start gap-4 p-4 bg-white rounded-xl border-2 border-black cursor-pointer hover:bg-[#FFEEE5] transition-colors">
-                    <div className="flex items-center h-6">
-                      <input
-                        type="radio"
-                        name="encryptionType"
-                        value="subscription-acl"
-                        checked={encryptionType === 'subscription-acl'}
-                        onChange={(e) => setEncryptionType(e.target.value as any)}
-                        className="w-5 h-5 cursor-pointer accent-krill-orange"
-                        disabled={!creatorProfile?.sealObjectId}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-base font-bold font-['Outfit'] text-black mb-1">
-                        Subscribers Only {!creatorProfile?.sealObjectId && '(Setup Required)'}
-                      </div>
-                      <div className="text-sm font-medium font-['Outfit'] text-black/70">
-                        Only your channel subscribers can watch. {!creatorProfile?.sealObjectId && 'You need to set a subscription price in your profile first.'}
-                      </div>
-                    </div>
-                  </label>
-
-                  {/* Both (DEK + SEAL) */}
-                  <label className="flex items-start gap-4 p-4 bg-white rounded-xl border-2 border-black cursor-pointer hover:bg-[#FFEEE5] transition-colors">
-                    <div className="flex items-center h-6">
-                      <input
-                        type="radio"
-                        name="encryptionType"
-                        value="both"
-                        checked={encryptionType === 'both'}
-                        onChange={(e) => setEncryptionType(e.target.value as any)}
-                        className="w-5 h-5 cursor-pointer accent-krill-orange"
-                        disabled={!creatorProfile?.sealObjectId}
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-base font-bold font-['Outfit'] text-black mb-1">
-                        Both Options {!creatorProfile?.sealObjectId && '(Setup Required)'}
-                      </div>
-                      <div className="text-sm font-medium font-['Outfit'] text-black/70">
-                        Subscribers watch for free, non-subscribers pay per view. Maximizes reach and revenue. {!creatorProfile?.sealObjectId && 'Requires subscription setup.'}
-                      </div>
-                    </div>
-                  </label>
-                </div>
-
-                {/* Info: SEAL not configured */}
-                {!creatorProfile?.sealObjectId && (
-                  <div className="mt-4 p-3 bg-[#1AAACE]/10 rounded-xl border-2 border-[#1AAACE]">
-                    <p className="text-sm font-semibold font-['Outfit'] text-black">
-                      💡 To enable subscription-based videos, set a subscription price in your <a href={`/profile/${effectiveAccount?.address}/edit`} className="text-[#EF4330] underline">profile settings</a>.
-                    </p>
-                  </div>
-                )}
-              </div>
-
               <Step2Monetization
                 feeConfigs={feeConfigs}
                 coinMetadataCache={coinMetadataCache}

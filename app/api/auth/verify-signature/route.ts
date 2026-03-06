@@ -38,12 +38,15 @@ export async function POST(request: NextRequest) {
           valid: isValid,
         });
       } else if (chain === 'iota') {
-        // For IOTA, trust the wallet signature
-        // The signature is already verified by the wallet extension
-        isValid = true;
+        // Verify IOTA signature cryptographically
+        const messageBytes = new TextEncoder().encode(message);
+        const publicKey = await verifyIotaSignature(messageBytes, signature);
+
+        isValid = publicKey.toIotaAddress() === address;
 
         console.log('[Verify Signature] IOTA verification:', {
-          address,
+          recoveredAddress: publicKey.toIotaAddress(),
+          expectedAddress: address,
           valid: isValid,
         });
       } else {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { ChainLogo } from '@/components/ChainLogo';
 
 interface Video {
   id: string;
@@ -199,7 +200,7 @@ const VideoCard = ({ video }: { video: Video }) => {
               </div>
               <div className="flex justify-start items-center flex-shrink-0 gap-1">
                 <div className="text-black text-lg font-semibold font-['Outfit']">2.5</div>
-                <img src="/logos/sui-logo.png" alt="SUI" width={20} height={20} className="object-contain" />
+                <ChainLogo size={20} />
               </div>
             </div>
           </div>
@@ -306,7 +307,7 @@ export default function Home() {
                         </div>
                         <div className="flex justify-start items-center gap-1">
                           <div className="justify-start text-black text-xl font-semibold font-['Outfit']">2.5</div>
-                          <img src="/logos/sui-logo.png" alt="SUI" width={20} height={20} className="object-contain" />
+                          <ChainLogo size={20} />
                         </div>
                       </div>
                     </div>
@@ -344,7 +345,7 @@ export default function Home() {
                         </div>
                         <div className="flex justify-start items-center gap-1">
                           <div className="justify-start text-black text-xl font-semibold font-['Outfit']">2.5</div>
-                          <img src="/logos/sui-logo.png" alt="SUI" width={20} height={20} className="object-contain" />
+                          <ChainLogo size={20} />
                         </div>
                       </div>
                     </div>
@@ -382,7 +383,7 @@ export default function Home() {
                         </div>
                         <div className="flex justify-start items-center gap-1">
                           <div className="justify-start text-black text-xl font-semibold font-['Outfit']">2.5</div>
-                          <img src="/logos/sui-logo.png" alt="SUI" width={20} height={20} className="object-contain" />
+                          <ChainLogo size={20} />
                         </div>
                       </div>
                     </div>
@@ -423,7 +424,7 @@ export default function Home() {
                             </div>
                             <div className="flex items-center gap-1">
                               <div className="text-black text-xl font-semibold font-['Outfit']">0</div>
-                              <img src="/logos/sui-logo.png" alt="SUI" width={20} height={20} className="object-contain" />
+                              <ChainLogo size={20} />
                             </div>
                           </div>
                         </div>
@@ -456,7 +457,7 @@ export default function Home() {
                             </div>
                             <div className="flex items-center gap-1">
                               <div className="text-black text-xl font-semibold font-['Outfit']">3</div>
-                              <img src="/logos/sui-logo.png" alt="SUI" width={20} height={20} className="object-contain" />
+                              <ChainLogo size={20} />
                             </div>
                           </div>
                         </div>
@@ -489,7 +490,7 @@ export default function Home() {
                             </div>
                             <div className="flex items-center gap-1">
                               <div className="text-black text-xl font-semibold font-['Outfit']">1</div>
-                              <img src="/logos/sui-logo.png" alt="SUI" width={20} height={20} className="object-contain" />
+                              <ChainLogo size={20} />
                             </div>
                           </div>
                         </div>
@@ -544,7 +545,7 @@ export default function Home() {
                             </div>
                             <div className="flex items-center gap-1">
                               <div className="text-black text-xl font-semibold font-['Outfit']">0</div>
-                              <img src="/logos/sui-logo.png" alt="SUI" width={20} height={20} className="object-contain" />
+                              <ChainLogo size={20} />
                             </div>
                           </div>
                         </div>
@@ -577,7 +578,7 @@ export default function Home() {
                             </div>
                             <div className="flex items-center gap-1">
                               <div className="text-black text-xl font-semibold font-['Outfit']">3</div>
-                              <img src="/logos/sui-logo.png" alt="SUI" width={20} height={20} className="object-contain" />
+                              <ChainLogo size={20} />
                             </div>
                           </div>
                         </div>
@@ -610,7 +611,7 @@ export default function Home() {
                             </div>
                             <div className="flex items-center gap-1">
                               <div className="text-black text-xl font-semibold font-['Outfit']">1</div>
-                              <img src="/logos/sui-logo.png" alt="SUI" width={20} height={20} className="object-contain" />
+                              <ChainLogo size={20} />
                             </div>
                           </div>
                         </div>

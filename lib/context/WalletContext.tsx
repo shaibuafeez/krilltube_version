@@ -1,15 +1,12 @@
 'use client';
 
 /**
- * Multi-Chain Wallet Context
- * Abstracts wallet connection for Sui and IOTA chains
- * Based on walrus-platform pattern
+ * Wallet Context — IOTA only
+ * SuiClientProvider exists for Walrus SDK infrastructure but is not user-facing.
  */
 
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
-import { useCurrentAccount as useSuiAccount } from '@mysten/dapp-kit';
-// IOTA disabled - using Sui/Walrus only
-// import { useCurrentAccount as useIotaAccount } from '@iota/dapp-kit';
+import { createContext, useContext, useCallback, ReactNode } from 'react';
+import { useCurrentAccount as useIotaAccount } from '@iota/dapp-kit';
 
 export type SupportedChain = 'sui' | 'iota';
 
@@ -27,66 +24,20 @@ interface WalletContextType extends WalletState {
 const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export function WalletContextProvider({ children }: { children: ReactNode }) {
-  const [activeChain, setActiveChainState] = useState<SupportedChain | null>(null);
+  const iotaAccount = useIotaAccount();
 
-  // Get connected accounts from both chains
-  const suiAccount = useSuiAccount();
-  // IOTA disabled - using Sui/Walrus only
-  // const iotaAccount = useIotaAccount();
-  const iotaAccount = null as { address: string } | null;
+  const state: WalletState = iotaAccount?.address
+    ? { chain: 'iota', address: iotaAccount.address, isConnected: true }
+    : { chain: null, address: null, isConnected: false };
 
-  // Determine current wallet state based on active chain
-  const getWalletState = useCallback((): WalletState => {
-    if (activeChain === 'sui' && suiAccount?.address) {
-      return {
-        chain: 'sui',
-        address: suiAccount.address,
-        isConnected: true,
-      };
-    }
-
-    if (activeChain === 'iota' && iotaAccount?.address) {
-      return {
-        chain: 'iota',
-        address: iotaAccount.address,
-        isConnected: true,
-      };
-    }
-
-    // Auto-detect if no active chain is set - prioritize IOTA
-    if (!activeChain) {
-      if (iotaAccount?.address) {
-        return {
-          chain: 'iota',
-          address: iotaAccount.address,
-          isConnected: true,
-        };
-      }
-      if (suiAccount?.address) {
-        return {
-          chain: 'sui',
-          address: suiAccount.address,
-          isConnected: true,
-        };
-      }
-    }
-
-    return {
-      chain: null,
-      address: null,
-      isConnected: false,
-    };
-  }, [activeChain, suiAccount, iotaAccount]);
-
-  const setActiveChain = useCallback((chain: SupportedChain) => {
-    setActiveChainState(chain);
+  // Keep setActiveChain for API compatibility but always resolve to IOTA
+  const setActiveChain = useCallback((_chain: SupportedChain) => {
+    // no-op — always IOTA
   }, []);
 
   const disconnect = useCallback(() => {
-    setActiveChainState(null);
+    // no-op — disconnection handled by IOTA dapp-kit
   }, []);
-
-  const state = getWalletState();
 
   const value: WalletContextType = {
     ...state,

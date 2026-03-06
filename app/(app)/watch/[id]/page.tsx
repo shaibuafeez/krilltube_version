@@ -7,6 +7,9 @@ import Image from 'next/image';
 import { CustomVideoPlayer } from '@/components/CustomVideoPlayer';
 import TipModal from '@/components/modals/TipModal';
 import { useCurrentAccount, useSignAndExecuteTransaction, useSuiClient, useSignPersonalMessage } from '@mysten/dapp-kit';
+import { useSignAndExecuteTransaction as useIotaSignAndExecute, useSignPersonalMessage as useIotaSignPersonalMessage } from '@iota/dapp-kit';
+import { useWalletContext } from '@/lib/context/WalletContext';
+import { ChainLogo } from '@/components/ChainLogo';
 
 // Helper function to fix Walrus URLs
 const fixWalrusUrl = (url: string, network: string = 'mainnet'): string => {
@@ -34,13 +37,21 @@ export default function WatchPage() {
   const params = useParams();
   const videoId = params.id as string;
   const account = useCurrentAccount();
-  const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
+  const { chain, address: walletAddress } = useWalletContext();
+  const { mutateAsync: signAndExecuteSui } = useSignAndExecuteTransaction();
+  const { mutateAsync: signAndExecuteIota } = useIotaSignAndExecute();
   const suiClient = useSuiClient();
-  const { mutateAsync: signPersonalMessage } = useSignPersonalMessage();
+  const { mutateAsync: signPersonalMessageSui } = useSignPersonalMessage();
+  const { mutateAsync: signPersonalMessageIota } = useIotaSignPersonalMessage();
+
+  // Resolve address: prefer walletContext (works for both chains), fallback to Sui account
+  const userAddress = walletAddress || account?.address;
+  const signAndExecute = chain === 'iota' ? signAndExecuteIota : signAndExecuteSui;
+  const signPersonalMessage = chain === 'iota' ? signPersonalMessageIota : signPersonalMessageSui;
 
   const [video, setVideo] = useState<any | null>(null);
   const [creator, setCreator] = useState<any | null>(null);
-  const [isSubscribed, setIsSubscribed] = useState(false);
+
   const [allVideos, setAllVideos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -102,7 +113,7 @@ export default function WatchPage() {
               if (creatorResponse.ok) {
                 const creatorData = await creatorResponse.json();
                 setCreator(creatorData.profile);
-                setIsSubscribed(creatorData.isSubscribed || false);
+                // Subscription data removed (SEAL is Sui-only)
               }
             } catch (err) {
               console.error('Error fetching creator profile:', err);
@@ -124,7 +135,7 @@ export default function WatchPage() {
 
         // Fetch like status and count
         try {
-          const userId = account?.address || '';
+          const userId = userAddress || '';
           const likeResponse = await fetch(`/api/v1/videos/${videoId}/like?userId=${userId}`);
           if (likeResponse.ok) {
             const likeData = await likeResponse.json();
@@ -157,16 +168,21 @@ export default function WatchPage() {
     };
 
     fetchData();
-  }, [videoId, account?.address]);
+  }, [videoId, userAddress]);
 
   // Handler for batch extend
   const handleExtendStorage = async () => {
-    if (!account?.address || !video) {
+    if (!userAddress || !video) {
       setExtendError('Please connect your wallet');
       return;
     }
 
-    if (account.address !== video.creatorId) {
+    if (chain === 'iota') {
+      setExtendError('Storage management requires a Sui wallet (Walrus is Sui-based)');
+      return;
+    }
+
+    if (userAddress !== video.creatorId) {
       setExtendError('Only the video creator can extend storage');
       return;
     }
@@ -184,7 +200,7 @@ export default function WatchPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           epochs,
-          creatorId: account.address,
+          creatorId: userAddress,
         }),
       });
 
@@ -202,8 +218,8 @@ export default function WatchPage() {
       const result = await batchExtendBlobs({
         blobObjectIds: extendResponse.blobObjectIds,
         epochs: extendResponse.epochs,
-        signAndExecuteTransaction: signAndExecute,
-        walletAddress: account.address,
+        signAndExecuteTransaction: signAndExecuteSui,
+        walletAddress: userAddress!,
       });
 
       console.log('[Watch] ✅ Batch extend complete:', result);
@@ -238,7 +254,7 @@ export default function WatchPage() {
           body: JSON.stringify({
             digest: result.digest,
             newEndEpoch: actualEndEpoch, // Use actual epoch from blockchain
-            creatorId: account.address,
+            creatorId: userAddress,
           }),
         });
 
@@ -280,12 +296,12 @@ export default function WatchPage() {
 
   // Handler for delete video
   const handleDeleteVideo = async () => {
-    if (!account?.address || !video) {
+    if (!userAddress || !video) {
       setDeleteError('Please connect your wallet');
       return;
     }
 
-    if (account.address !== video.creatorId) {
+    if (userAddress !== video.creatorId) {
       setDeleteError('Only the video creator can delete this video');
       return;
     }
@@ -307,7 +323,7 @@ export default function WatchPage() {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          creatorId: account.address,
+          creatorId: userAddress,
         }),
       });
 
@@ -319,9 +335,9 @@ export default function WatchPage() {
       const deleteResponse = await res.json();
       console.log('[Watch] Delete response:', deleteResponse);
 
-      // Step 2: Sign and execute delete transaction
+      // Step 2: Sign and execute delete transaction (Walrus delete is Sui-only)
       const { Transaction } = await import('@mysten/sui/transactions');
-      const result = await signAndExecute({
+      const result = await signAndExecuteSui({
         transaction: Transaction.from(deleteResponse.unsignedTransaction),
       });
 
@@ -336,7 +352,7 @@ export default function WatchPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           transactionDigest: result.digest,
-          creatorId: account.address,
+          creatorId: userAddress,
         }),
       });
 
@@ -364,7 +380,7 @@ export default function WatchPage() {
 
   // Handler for like toggle
   const handleToggleLike = async () => {
-    if (!account?.address) {
+    if (!userAddress) {
       alert('Please connect your wallet to like videos');
       return;
     }
@@ -384,7 +400,7 @@ export default function WatchPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: account.address,
+          userId: userAddress,
         }),
       });
 
@@ -413,7 +429,7 @@ export default function WatchPage() {
 
   // Handler for posting comments
   const handlePostComment = async () => {
-    if (!account?.address) {
+    if (!userAddress) {
       alert('Please connect your wallet to comment');
       return;
     }
@@ -432,32 +448,37 @@ export default function WatchPage() {
 
     try {
       let txDigest: string | undefined;
-      let chain: string | undefined;
+      const currentChain = chain || 'sui';
       const donationAmountMist = donationAmount ? (parseFloat(donationAmount) * 1_000_000_000).toString() : "0";
 
       // Step 1: If donation provided, execute payment transaction first
       if (donationAmount && parseFloat(donationAmount) > 0) {
-        console.log('[Watch] Processing donation payment...');
+        console.log(`[Watch] Processing donation payment on ${currentChain}...`);
 
-        const { Transaction } = await import('@mysten/sui/transactions');
-        const tx = new Transaction();
-        tx.setSender(account.address);
+        // Use the appropriate Transaction class based on chain
+        if (currentChain === 'iota') {
+          const { Transaction } = await import('@iota/iota-sdk/transactions');
+          const tx = new Transaction();
+          tx.setSender(userAddress);
+          const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(donationAmountMist)]);
+          tx.transferObjects([coin], tx.pure.address(video.creatorId));
 
-        // Split coins and transfer to creator
-        const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(donationAmountMist)]);
-        tx.transferObjects([coin], tx.pure.address(video.creatorId));
+          const result = await signAndExecuteIota({ transaction: tx });
+          if (!result.digest) throw new Error('Donation transaction failed');
+          txDigest = result.digest;
+        } else {
+          const { Transaction } = await import('@mysten/sui/transactions');
+          const tx = new Transaction();
+          tx.setSender(userAddress);
+          const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(donationAmountMist)]);
+          tx.transferObjects([coin], tx.pure.address(video.creatorId));
 
-        const result = await signAndExecute({
-          transaction: tx,
-        });
-
-        if (!result.digest) {
-          throw new Error('Donation transaction failed');
+          const result = await signAndExecuteSui({ transaction: tx });
+          if (!result.digest) throw new Error('Donation transaction failed');
+          txDigest = result.digest;
         }
 
-        txDigest = result.digest;
-        chain = 'sui'; // TODO: Make this dynamic based on network
-        console.log('[Watch] ✅ Donation payment successful:', result.digest);
+        console.log('[Watch] Donation payment successful:', txDigest);
       }
 
       // Step 2: Sign the comment with user's wallet
@@ -475,12 +496,12 @@ export default function WatchPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: account.address,
+          userId: userAddress,
           content: commentInput.trim(),
           signature,
           donationAmount: donationAmountMist,
           txDigest,
-          chain,
+          chain: currentChain,
         }),
       });
 
@@ -496,8 +517,9 @@ export default function WatchPage() {
       setCommentInput('');
       setDonationAmount('');
 
+      const nativeToken = currentChain === 'iota' ? 'IOTA' : 'SUI';
       const successMsg = donationAmount && parseFloat(donationAmount) > 0
-        ? `Comment posted with ${donationAmount} SUI donation!`
+        ? `Comment posted with ${donationAmount} ${nativeToken} donation!`
         : 'Comment posted successfully!';
       console.log('[Watch]', successMsg);
 
@@ -580,12 +602,8 @@ export default function WatchPage() {
                 autoplay={false}
                 posterUrl={video.poster || (video.posterWalrusUri ? fixWalrusUrl(video.posterWalrusUri, video.network || 'mainnet') : undefined)}
                 isFree={video.isFree || false}
-                encryptionType={video.encryptionType || 'per-video'}
-                channelId={video.sealObjectId}
                 creatorAddress={video.creatorId}
                 creatorName={creator?.name}
-                channelPrice={creator?.channelPrice}
-                channelChain={creator?.channelChain}
               />
             </div>
           </div>
@@ -640,7 +658,7 @@ export default function WatchPage() {
                           <div className="inline-flex flex-col justify-start items-start gap-[2.94px]">
                             <div className="justify-start text-black text-base font-semibold font-['Outfit']">1</div>
                           </div>
-                          <img src="/logos/sui-logo.png" alt="SUI" width={16} height={16} className="object-contain" />
+                          <ChainLogo size={16} />
                         </div>
                       </div>
                     </div>
@@ -697,22 +715,13 @@ export default function WatchPage() {
                   </div>
                 </div>
 
-                {/* Subscribe Button - Shows subscription status */}
-                {isSubscribed ? (
-                  <div className="px-6 py-2.5 bg-[#97F0E5] rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black inline-flex justify-center items-center gap-2">
-                    <svg className="w-5 h-5 text-black" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <div className="text-black text-base font-bold font-['Outfit']">Subscribed</div>
-                  </div>
-                ) : (
-                  <Link
-                    href={`/profile/${video.creatorId}`}
-                    className="px-6 py-2.5 bg-white rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black inline-flex justify-center items-center cursor-pointer hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
-                  >
-                    <div className="text-black text-base font-bold font-['Outfit']">Subscribe</div>
-                  </Link>
-                )}
+                {/* Follow Button */}
+                <Link
+                  href={`/profile/${video.creatorId}`}
+                  className="px-6 py-2.5 bg-white rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black inline-flex justify-center items-center cursor-pointer hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
+                >
+                  <div className="text-black text-base font-bold font-['Outfit']">Follow</div>
+                </Link>
               </div>
 
               {/* Action Buttons */}
@@ -748,11 +757,15 @@ export default function WatchPage() {
                   className="h-12 px-4 bg-[#FFEEE5] rounded-full shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] outline outline-2 outline-offset-[-2px] outline-black inline-flex justify-center items-center gap-1.5 cursor-pointer hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all"
                 >
                   <span className="text-black text-sm font-bold font-['Outfit']">Tip</span>
-                  <img src="/logos/sui-logo.png" alt="SUI" width={16} height={16} className="object-contain" />
+                  {chain === 'iota' ? (
+                    <img src="/logos/iota-logo.svg" alt="IOTA" width={16} height={16} className="object-contain" />
+                  ) : (
+                    <ChainLogo size={16} />
+                  )}
                 </button>
 
-                {/* Creator Action Buttons - Only visible to video owner */}
-                {account?.address === video.creatorId && (
+                {/* Creator Action Buttons - Only visible to video owner on Sui (Walrus management is Sui-only) */}
+                {userAddress === video.creatorId && chain !== 'iota' && (
                   <>
                     {/* Extend Storage Button */}
                     <button
@@ -795,7 +808,7 @@ export default function WatchPage() {
         </div>
 
         {/* Blob IDs Section - Only visible to creator */}
-        {account?.address === video.creatorId && video.network === 'mainnet' && (
+        {userAddress === video.creatorId && video.network === 'mainnet' && (
           <div className="w-full flex justify-start items-start gap-6 mt-6">
             <div className="flex-1 max-w-[970px]">
               <div className="w-full p-6 bg-[#F5F0E8] rounded-[32px] shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)] border-[3px] border-black flex flex-col justify-start items-start gap-3">
@@ -963,8 +976,8 @@ export default function WatchPage() {
                 <textarea
                   value={commentInput}
                   onChange={(e) => setCommentInput(e.target.value)}
-                  placeholder={account?.address ? "Add a comment..." : "Connect wallet to comment"}
-                  disabled={!account?.address || postingComment}
+                  placeholder={userAddress ? "Add a comment..." : "Connect wallet to comment"}
+                  disabled={!userAddress || postingComment}
                   maxLength={1000}
                   rows={3}
                   className="w-full px-3 py-2 border-2 border-black/20 rounded-xl font-['Outfit'] text-black placeholder-black/50 resize-none focus:outline-none focus:border-[#1AAACE] disabled:opacity-50 disabled:cursor-not-allowed"
@@ -980,12 +993,12 @@ export default function WatchPage() {
                     value={donationAmount}
                     onChange={(e) => setDonationAmount(e.target.value)}
                     placeholder="0.00"
-                    disabled={!account?.address || postingComment}
+                    disabled={!userAddress || postingComment}
                     min="0"
                     step="0.01"
                     className="w-32 px-3 py-1.5 border-2 border-black/20 rounded-lg font-['Outfit'] text-black placeholder-black/50 focus:outline-none focus:border-[#1AAACE] disabled:opacity-50 disabled:cursor-not-allowed"
                   />
-                  <span className="text-sm text-black/70 font-['Outfit']">SUI</span>
+                  <span className="text-sm text-black/70 font-['Outfit']">{chain === 'iota' ? 'IOTA' : 'SUI'}</span>
                   <span className="text-xs text-black/50 font-['Outfit']">(Higher donations = better visibility)</span>
                 </div>
 
@@ -995,7 +1008,7 @@ export default function WatchPage() {
                   </span>
                   <button
                     onClick={handlePostComment}
-                    disabled={!account?.address || postingComment || !commentInput.trim()}
+                    disabled={!userAddress || postingComment || !commentInput.trim()}
                     className="px-6 py-2 bg-[#1AAACE] text-white font-bold rounded-[32px] shadow-[3px_3px_0_0_rgba(0,0,0,1)] outline outline-2 outline-black hover:shadow-[2px_2px_0_0_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] transition-all disabled:opacity-50 disabled:cursor-not-allowed font-['Outfit']"
                   >
                     {postingComment ? 'Posting...' : (donationAmount && parseFloat(donationAmount) > 0 ? `Donate & Comment` : 'Post Comment')}
@@ -1040,9 +1053,9 @@ export default function WatchPage() {
                               {comment.userName ? `From @${comment.userName}` : `${comment.userId.slice(0, 6)}...${comment.userId.slice(-4)}`}
                             </div>
                             {comment.donationAmount && comment.donationAmount !== "0" && (
-                              <div className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full inline-flex items-center gap-1" title={`Donated ${Number(comment.donationAmount) / 1_000_000_000} SUI`}>
+                              <div className="px-2 py-1 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full inline-flex items-center gap-1" title={`Donated ${Number(comment.donationAmount) / 1_000_000_000} ${comment.chain === 'iota' ? 'IOTA' : 'SUI'}`}>
                                 <span className="text-white text-xs font-bold font-['Outfit']">
-                                  💰 {Number(comment.donationAmount) / 1_000_000_000} SUI
+                                  💰 {Number(comment.donationAmount) / 1_000_000_000} {comment.chain === 'iota' ? 'IOTA' : 'SUI'}
                                 </span>
                               </div>
                             )}

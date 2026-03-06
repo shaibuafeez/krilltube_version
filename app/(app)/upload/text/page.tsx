@@ -8,8 +8,8 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-// IOTA disabled - using Sui/Walrus only
-// import { useSignAndExecuteTransaction as useIotaSignAndExecuteTransaction } from '@iota/dapp-kit';
+import { useCurrentAccount as useIotaCurrentAccount, useSignAndExecuteTransaction as useIotaSignAndExecuteTransaction } from '@iota/dapp-kit';
+import { useWalletContext } from '@/lib/context/WalletContext';
 import { Step2Monetization } from '@/components/upload/Step2Monetization';
 import { Step3FeeSharing } from '@/components/upload/Step3FeeSharing';
 import { UploadStepIndicator } from '@/components/upload/UploadStepIndicator';
@@ -44,12 +44,16 @@ type CoinPrice = {
 function TextUploadContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const account = useCurrentAccount();
-  const { network } = useCurrentWalletMultiChain();
+  const suiAccount = useCurrentAccount();
+  const iotaAccount = useIotaCurrentAccount();
+  const { chain, address: walletAddress } = useWalletContext();
+  const { network, iotaWallet } = useCurrentWalletMultiChain();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
-  // IOTA disabled - using Sui/Walrus only
-  // const { mutateAsync: iotaSignAndExecuteTransaction } = useIotaSignAndExecuteTransaction();
-  const iotaSignAndExecuteTransaction: any = null;
+  const { mutateAsync: iotaSignAndExecuteTransaction } = useIotaSignAndExecuteTransaction();
+
+  // Effective account that works with IOTA
+  const effectiveAccount = iotaAccount || suiAccount;
+  const effectiveAddress = walletAddress || effectiveAccount?.address;
   const { walrusNetwork } = useNetwork();
   const { buildFundingTransaction, estimateGasNeeded, executeWithDelegator, delegatorAddress, autoReclaimGas } = usePersonalDelegator();
 
@@ -138,7 +142,7 @@ function TextUploadContent() {
       setProgress({ stage: 'encrypting', percent: 0, message: 'Preparing upload...' });
 
       // Validate wallet connection
-      if (!account) {
+      if (!effectiveAddress) {
         throw new Error('Please connect your wallet');
       }
 
@@ -150,7 +154,7 @@ function TextUploadContent() {
       const file = new File([blob], `${title.replace(/[^a-zA-Z0-9]/g, '_')}.txt`, { type: 'text/plain' });
 
       // Fund delegator wallet (mainnet only) via PTB
-      if (walrusNetwork === 'mainnet' && account) {
+      if (walrusNetwork === 'mainnet' && effectiveAddress) {
         console.log('[Text Upload] Funding delegator wallet with PTB...');
 
         // Calculate text file size
@@ -176,7 +180,7 @@ function TextUploadContent() {
         try {
           // Build PTB that funds BOTH SUI gas and WAL storage in one transaction
           const fundingTx = await buildFundingTransaction(
-            account.address,
+            effectiveAddress,
             gasNeeded,
             walAmountMist
           );
@@ -227,9 +231,9 @@ function TextUploadContent() {
       } else {
         // Use user's own wallet for testnet
         effectiveSignAndExecute = signAndExecuteTransaction;
-        effectiveUploadAddress = account.address;
+        effectiveUploadAddress = effectiveAddress;
 
-        console.log('[Text Upload] Using user wallet for testnet:', account.address);
+        console.log('[Text Upload] Using user wallet for testnet:', effectiveAddress);
       }
 
       // Encrypt and upload text document
@@ -250,7 +254,7 @@ function TextUploadContent() {
       // Prepare creator configs for monetization
       const creatorConfigs = feeConfigs.map(config => ({
         objectId: crypto.randomUUID(), // TODO: Replace with actual on-chain object ID
-        chain: 'sui',
+        chain: chain || 'iota',
         coinType: config.tokenType,
         pricePerView: config.amountPer1000Views,
         decimals: 9, // TODO: Fetch actual decimals from coin metadata
@@ -269,7 +273,7 @@ function TextUploadContent() {
           contentId,
           title,
           description: tags,
-          creatorId: account.address,
+          creatorId: effectiveAddress,
           network: walrusNetwork,
           document: uploadResult.document,
           creatorConfigs,
@@ -287,8 +291,8 @@ function TextUploadContent() {
       setProgress({ stage: 'complete', percent: 100, message: 'Upload complete!' });
 
       // Auto-reclaim gas
-      if (walrusNetwork === 'mainnet' && account) {
-        await autoReclaimGas(account.address);
+      if (walrusNetwork === 'mainnet' && effectiveAddress) {
+        await autoReclaimGas(effectiveAddress);
       }
 
       // Redirect to viewing page
@@ -316,8 +320,8 @@ function TextUploadContent() {
       setIsUploading(false);
 
       // Auto-reclaim on error too if on mainnet
-      if (walrusNetwork === 'mainnet' && account) {
-        await autoReclaimGas(account.address).catch(console.error);
+      if (walrusNetwork === 'mainnet' && effectiveAddress) {
+        await autoReclaimGas(effectiveAddress).catch(console.error);
       }
     }
   };

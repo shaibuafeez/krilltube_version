@@ -32,17 +32,8 @@ const walrusConfigs: Record<WalrusNetwork, NetworkConfig> = {
 const NetworkContext = createContext<NetworkContextType | undefined>(undefined);
 
 export function NetworkProvider({ children }: { children: ReactNode }) {
-  // Initialize from localStorage or default to mainnet
-  const [walrusNetwork, setWalrusNetworkState] = useState<WalrusNetwork>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('walrusNetwork');
-      if (stored === 'mainnet' || stored === 'testnet') {
-        return stored;
-      }
-    }
-    // Default to testnet
-    return 'testnet';
-  });
+  // Always force testnet — IOTA-only platform uses Walrus testnet
+  const [walrusNetwork, setWalrusNetworkState] = useState<WalrusNetwork>('testnet');
 
   const setWalrusNetwork = (newNetwork: WalrusNetwork) => {
     setWalrusNetworkState(newNetwork);

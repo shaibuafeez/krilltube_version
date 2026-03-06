@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-import { Transaction } from '@mysten/sui/transactions';
+import { useCurrentAccount, useSignAndExecuteTransaction as useSuiSignAndExecute } from '@mysten/dapp-kit';
+import { useSignAndExecuteTransaction as useIotaSignAndExecute } from '@iota/dapp-kit';
+import { Transaction as SuiTransaction } from '@mysten/sui/transactions';
+import { useWalletContext } from '@/lib/context/WalletContext';
 
 interface TipModalProps {
   isOpen: boolean;
@@ -20,7 +22,12 @@ export default function TipModal({
   creatorName,
 }: TipModalProps) {
   const currentAccount = useCurrentAccount();
-  const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+  const { chain, address: walletAddress } = useWalletContext();
+  const { mutate: signAndExecuteSui } = useSuiSignAndExecute();
+  const { mutate: signAndExecuteIota } = useIotaSignAndExecute();
+
+  const userAddress = walletAddress || currentAccount?.address;
+  const nativeToken = chain === 'iota' ? 'IOTA' : 'SUI';
 
   const [amount, setAmount] = useState('');
   const [message, setMessage] = useState('');
@@ -30,7 +37,7 @@ export default function TipModal({
   const quickAmounts = [0.1, 0.5, 1, 5, 10];
 
   const handleTip = async () => {
-    if (!currentAccount?.address) {
+    if (!userAddress) {
       alert('Please connect your wallet first');
       return;
     }
@@ -45,49 +52,62 @@ export default function TipModal({
     try {
       const amountInMist = Math.floor(parseFloat(amount) * 1e9);
 
-      const tx = new Transaction();
-      const [coin] = tx.splitCoins(tx.gas, [amountInMist]);
-      tx.transferObjects([coin], creatorAddress);
-
-      signAndExecuteTransaction(
-        { transaction: tx },
-        {
-          onSuccess: async (result) => {
-            try {
-              await fetch(`/api/v1/videos/${videoId}/tips`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  tipperAddress: currentAccount.address,
-                  tipperName: `User-${currentAccount.address.slice(0, 8)}`,
-                  amount: amountInMist.toString(),
-                  message: message.trim() || null,
-                  txDigest: result.digest,
-                  chain: 'sui',
-                }),
-              });
-            } catch (error) {
-              console.error('[Tip] Failed to record tip:', error);
-            }
-
-            setSuccess(true);
-            setTimeout(() => {
-              setSuccess(false);
-              setAmount('');
-              setMessage('');
-              onClose();
-            }, 2000);
-          },
-          onError: (error) => {
-            console.error('[Tip] Transaction failed:', error);
-            alert('Transaction failed. Please try again.');
-          },
+      const onSuccess = async (result: { digest: string }) => {
+        try {
+          await fetch(`/api/v1/videos/${videoId}/tips`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              tipperAddress: userAddress,
+              tipperName: `User-${userAddress.slice(0, 8)}`,
+              amount: amountInMist.toString(),
+              message: message.trim() || null,
+              txDigest: result.digest,
+              chain: chain || 'sui',
+            }),
+          });
+        } catch (error) {
+          console.error('[Tip] Failed to record tip:', error);
         }
-      );
+
+        setSuccess(true);
+        setTimeout(() => {
+          setSuccess(false);
+          setAmount('');
+          setMessage('');
+          onClose();
+        }, 2000);
+      };
+
+      const onError = (error: Error) => {
+        console.error('[Tip] Transaction failed:', error);
+        alert('Transaction failed. Please try again.');
+        setIsSubmitting(false);
+      };
+
+      if (chain === 'iota') {
+        const { Transaction } = await import('@iota/iota-sdk/transactions');
+        const tx = new Transaction();
+        const [coin] = tx.splitCoins(tx.gas, [amountInMist]);
+        tx.transferObjects([coin], creatorAddress);
+
+        signAndExecuteIota(
+          { transaction: tx },
+          { onSuccess, onError }
+        );
+      } else {
+        const tx = new SuiTransaction();
+        const [coin] = tx.splitCoins(tx.gas, [amountInMist]);
+        tx.transferObjects([coin], creatorAddress);
+
+        signAndExecuteSui(
+          { transaction: tx },
+          { onSuccess, onError }
+        );
+      }
     } catch (error) {
       console.error('[Tip] Error:', error);
       alert('Failed to create transaction.');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -122,7 +142,7 @@ export default function TipModal({
             <div className="text-5xl mb-4">&#10003;</div>
             <p className="text-xl font-bold text-black font-['Outfit']">Tip sent!</p>
             <p className="text-sm text-black/60 font-['Outfit'] mt-1">
-              {amount} SUI sent to {creatorName || 'creator'}
+              {amount} {nativeToken} sent to {creatorName || 'creator'}
             </p>
           </div>
         ) : (
@@ -150,7 +170,7 @@ export default function TipModal({
                       }
                       disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
-                    {qa} SUI
+                    {qa} {nativeToken}
                   </button>
                 ))}
               </div>
@@ -159,7 +179,7 @@ export default function TipModal({
             {/* Custom amount */}
             <div className="mb-4">
               <label className="block text-sm font-semibold text-black mb-2 font-['Outfit']">
-                Amount (SUI):
+                Amount ({nativeToken}):
               </label>
               <input
                 type="number"
@@ -229,7 +249,7 @@ export default function TipModal({
                   disabled:opacity-50 disabled:cursor-not-allowed
                   transition-all"
               >
-                {isSubmitting ? 'Sending...' : `Send ${amount || '0'} SUI`}
+                {isSubmitting ? 'Sending...' : `Send ${amount || '0'} ${nativeToken}`}
               </button>
             </div>
           </>

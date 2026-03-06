@@ -373,23 +373,23 @@ export function Sidebar({ isOpen = true, onClose, isCollapsed = false, onToggleC
               )}
 
               <Link
-                href="/library"
+                href="/upload"
                 onClick={onClose}
                 className={`inline-flex transition-colors ${
                   showText
-                    ? `px-4 py-2 rounded-[32px] justify-start items-center gap-2.5 self-stretch ${pathname === '/library' ? 'bg-[#EF4330] outline outline-[3px] outline-offset-[-3px] outline-black' : 'hover:bg-white/50'}`
+                    ? `px-4 py-2 rounded-[32px] justify-start items-center gap-2.5 self-stretch ${pathname === '/upload' ? 'bg-[#EF4330] outline outline-[3px] outline-offset-[-3px] outline-black' : 'hover:bg-white/50'}`
                     : 'flex-col justify-center items-center gap-1 hover:bg-white/50 rounded-lg px-2 py-2'
                 }`}
               >
-                {!showText && pathname === '/library' ? (
+                {!showText && pathname === '/upload' ? (
                   <div className="px-5 py-3 bg-[#EF4330] rounded-[16px] outline outline-[2px] outline-offset-[-2px] outline-black flex flex-col items-center gap-1">
-                    <img src="/logos/your Uploads.svg" alt="Your Uploads" width={24} height={24} className="w-6 h-6 flex-shrink-0 brightness-0 invert" />
-                    <div className="text-white font-semibold font-['Outfit'] text-xs">Uploads</div>
+                    <img src="/logos/your Uploads.svg" alt="Upload" width={24} height={24} className="w-6 h-6 flex-shrink-0 brightness-0 invert" />
+                    <div className="text-white font-semibold font-['Outfit'] text-xs">Upload</div>
                   </div>
                 ) : (
                   <>
-                    <img src="/logos/your Uploads.svg" alt="Your Uploads" width={24} height={24} className={`w-6 h-6 flex-shrink-0 ${pathname === '/library' && showText ? 'brightness-0 invert' : ''}`} />
-                    <div className={`font-semibold font-['Outfit'] ${showText ? 'text-base' : 'text-xs text-center'} ${pathname === '/library' && showText ? 'text-white' : 'text-black'}`}>{showText ? 'Your Uploads' : 'Uploads'}</div>
+                    <img src="/logos/your Uploads.svg" alt="Upload" width={24} height={24} className={`w-6 h-6 flex-shrink-0 ${pathname === '/upload' && showText ? 'brightness-0 invert' : ''}`} />
+                    <div className={`font-semibold font-['Outfit'] ${showText ? 'text-base' : 'text-xs text-center'} ${pathname === '/upload' && showText ? 'text-white' : 'text-black'}`}>{showText ? 'Upload' : 'Upload'}</div>
                   </>
                 )}
               </Link>

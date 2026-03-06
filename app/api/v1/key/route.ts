@@ -82,8 +82,9 @@ export async function GET(request: NextRequest) {
         const publicKey = await verifySuiSignature(messageBytes, signature);
         isValid = publicKey.toSuiAddress() === address;
       } else if (chain === 'iota') {
-        // For IOTA, trust the wallet signature
-        isValid = true;
+        const messageBytes = new TextEncoder().encode(message);
+        const publicKey = await verifyIotaSignature(messageBytes, signature);
+        isValid = publicKey.toIotaAddress() === address;
       } else {
         return NextResponse.json(
           { error: `Unsupported chain: ${chain}` },
@@ -115,6 +116,7 @@ export async function GET(request: NextRequest) {
         id: true,
         encryptionType: true,
         creatorId: true,
+        isFree: true,
       },
     });
 
@@ -122,12 +124,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }
 
-    console.log(`[Key API] Video encryption type: ${video.encryptionType}`);
+    console.log(`[Key API] Video encryption type: ${video.encryptionType}, isFree: ${video.isFree}`);
 
     // Step 3: Check access based on encryption type
     let hasAccess = false;
 
-    if (video.encryptionType === 'subscription-acl' || video.encryptionType === 'both') {
+    // Free videos grant access to all authenticated users
+    if (video.isFree) {
+      console.log('[Key API] ✓ Free video - access granted');
+      hasAccess = true;
+    }
+
+    if (!hasAccess && (video.encryptionType === 'subscription-acl' || video.encryptionType === 'both')) {
       // Check if user has subscription to the creator
       const subscription = await prisma.subscription.findFirst({
         where: {
@@ -147,7 +155,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    if (video.encryptionType === 'per-video' || video.encryptionType === 'both') {
+    if (!hasAccess && (video.encryptionType === 'per-video' || video.encryptionType === 'both')) {
       // Check if user has paid for this specific video
       const paymentInfo = await prisma.videoPaymentInfo.findFirst({
         where: {
@@ -321,8 +329,9 @@ export async function POST(request: NextRequest) {
         const publicKey = await verifySuiSignature(messageBytes, signature);
         isValid = publicKey.toSuiAddress() === address;
       } else if (chain === 'iota') {
-        // For IOTA, trust the wallet signature
-        isValid = true;
+        const messageBytes = new TextEncoder().encode(message);
+        const publicKey = await verifyIotaSignature(messageBytes, signature);
+        isValid = publicKey.toIotaAddress() === address;
       } else {
         return NextResponse.json(
           { error: `Unsupported chain: ${chain}` },
@@ -354,6 +363,7 @@ export async function POST(request: NextRequest) {
         id: true,
         encryptionType: true,
         creatorId: true,
+        isFree: true,
       },
     });
 
@@ -361,13 +371,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Video not found' }, { status: 404 });
     }
 
-    console.log(`[Key Batch API] Video encryption type: ${videoInfo.encryptionType}`);
+    console.log(`[Key Batch API] Video encryption type: ${videoInfo.encryptionType}, isFree: ${videoInfo.isFree}`);
 
     // Step 3: Check access based on encryption type
     let hasAccess = false;
     let paymentInfo = null;
 
-    if (videoInfo.encryptionType === 'subscription-acl' || videoInfo.encryptionType === 'both') {
+    // Free videos grant access to all authenticated users
+    if (videoInfo.isFree) {
+      console.log('[Key Batch API] ✓ Free video - access granted');
+      hasAccess = true;
+    }
+
+    if (!hasAccess && (videoInfo.encryptionType === 'subscription-acl' || videoInfo.encryptionType === 'both')) {
       // Check if user has subscription to the creator
       const subscription = await prisma.subscription.findFirst({
         where: {
@@ -387,7 +403,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (videoInfo.encryptionType === 'per-video' || videoInfo.encryptionType === 'both') {
+    if (!hasAccess && (videoInfo.encryptionType === 'per-video' || videoInfo.encryptionType === 'both')) {
       // Check if user has paid for this specific video
       paymentInfo = await prisma.videoPaymentInfo.findFirst({
         where: {

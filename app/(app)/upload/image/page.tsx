@@ -8,8 +8,7 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
-// IOTA disabled - using Sui/Walrus only
-// import { useSignAndExecuteTransaction as useIotaSignAndExecuteTransaction } from '@iota/dapp-kit';
+import { useSignAndExecuteTransaction as useIotaSignAndExecuteTransaction } from '@iota/dapp-kit';
 import { useNetwork } from '@/contexts/NetworkContext';
 import { usePersonalDelegator } from '@/lib/hooks/usePersonalDelegator';
 import { useCurrentWalletMultiChain } from '@/lib/hooks/useCurrentWalletMultiChain';
@@ -51,9 +50,7 @@ function ImagesUploadContent() {
   const account = useCurrentAccount();
   const { network, suiWallet, iotaWallet } = useCurrentWalletMultiChain();
   const { mutateAsync: signAndExecuteTransaction } = useSignAndExecuteTransaction();
-  // IOTA disabled - using Sui/Walrus only
-  // const { mutateAsync: iotaSignAndExecuteTransaction } = useIotaSignAndExecuteTransaction();
-  const iotaSignAndExecuteTransaction: any = null;
+  const { mutateAsync: iotaSignAndExecuteTransaction } = useIotaSignAndExecuteTransaction();
   const { walrusNetwork } = useNetwork();
   const { buildFundingTransaction, estimateGasNeeded, executeWithDelegator, delegatorAddress, autoReclaimGas } = usePersonalDelegator();
 
@@ -322,7 +319,7 @@ function ImagesUploadContent() {
         metadata?: string;
       }> = [];
 
-      if (feeConfigs.length > 0 && !debugMode && network) {
+      if (feeConfigs.length > 0 && !isFree && !debugMode && network) {
         console.log('[Image Upload] Creating creator config...');
         setProgress({ stage: 'uploading', percent: 2, message: 'Creating monetization config...' });
 

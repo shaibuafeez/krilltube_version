@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSidebarContext } from '@/lib/context/SidebarContext';
 import StarRating from '@/components/StarRating';
 import { mockMangaDetail, mockRecommendations, extendedRecommendations, type RecommendationManga } from '@/lib/mock-data/manga';
+import { ChainLogo } from '@/components/ChainLogo';
 
 // Recommendation Card Component
 const RecommendationCard = ({
@@ -31,7 +32,7 @@ const RecommendationCard = ({
         {/* Price Badge */}
         <div className="absolute bottom-2 right-2 px-2 py-1 bg-white rounded-lg border-2 border-black flex items-center gap-0.5">
           <span className="text-black text-sm font-bold font-['Outfit']">{price}</span>
-          <img src="/logos/sui-logo.png" alt="SUI" width={16} height={16} className="object-contain" />
+          <ChainLogo size={16} />
         </div>
       </div>
 

@@ -5,7 +5,7 @@
  * as of January 2025. This avoids WASM/SDK complexity in API routes.
  */
 
-const DEFAULT_NETWORK = 'mainnet';
+const DEFAULT_NETWORK = 'testnet';
 const DEFAULT_EPOCHS = 50;
 
 /**
