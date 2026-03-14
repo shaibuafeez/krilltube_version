@@ -2,17 +2,17 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useWalletContext } from '@/lib/context/WalletContext';
 
 export default function CreateLiveStreamPage() {
   const router = useRouter();
-  const currentAccount = useCurrentAccount();
+  const { address, isConnected } = useWalletContext();
   const [isCreating, setIsCreating] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
   const handleCreateStream = async () => {
-    if (!currentAccount?.address) {
+    if (!address) {
       alert('Please connect your wallet first');
       return;
     }
@@ -31,7 +31,7 @@ export default function CreateLiveStreamPage() {
         body: JSON.stringify({
           title: title.trim(),
           description: description.trim() || null,
-          creatorId: currentAccount.address,
+          creatorId: address,
           maxParticipants: 100,
         }),
       });
@@ -54,14 +54,14 @@ export default function CreateLiveStreamPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0668A6] via-[#0668A6] to-[#1AAACE] px-6 py-12">
+    <div className="min-h-screen py-12 px-6">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 font-['Outfit']">
-            Go Live 🎥
+          <h1 className="text-3xl font-bold text-white mb-2 font-['Outfit']">
+            Go Live
           </h1>
-          <p className="text-white/80 text-lg font-['Outfit']">
+          <p className="text-white/80 text-base font-['Outfit']">
             Set up your live stream and start broadcasting to your audience
           </p>
         </div>
@@ -69,10 +69,11 @@ export default function CreateLiveStreamPage() {
         {/* Form Card */}
         <div className="p-8 bg-[#FFEEE5] rounded-[32px]
           shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
-          outline outline-[3px] outline-offset-[-3px] outline-black">
+          outline outline-[3px] outline-offset-[-3px] outline-black
+          flex flex-col gap-6">
 
           {/* Stream Title */}
-          <div className="mb-6">
+          <div>
             <label className="block text-black text-sm font-bold font-['Outfit'] mb-2">
               Stream Title *
             </label>
@@ -97,7 +98,7 @@ export default function CreateLiveStreamPage() {
           </div>
 
           {/* Stream Description */}
-          <div className="mb-8">
+          <div>
             <label className="block text-black text-sm font-bold font-['Outfit'] mb-2">
               Description (Optional)
             </label>
@@ -123,10 +124,12 @@ export default function CreateLiveStreamPage() {
           </div>
 
           {/* Wallet Check */}
-          {!currentAccount?.address && (
-            <div className="mb-6 p-4 bg-yellow-100 rounded-xl border-2 border-black">
+          {!isConnected && (
+            <div className="p-4 bg-white rounded-xl
+              shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
+              outline outline-2 outline-offset-[-2px] outline-black">
               <p className="text-black text-sm font-semibold font-['Outfit']">
-                ⚠️ Please connect your wallet to create a live stream
+                Please connect your wallet to create a live stream
               </p>
             </div>
           )}
@@ -152,8 +155,8 @@ export default function CreateLiveStreamPage() {
 
             <button
               onClick={handleCreateStream}
-              disabled={isCreating || !currentAccount?.address || !title.trim()}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-[#EF4330] to-[#1AAACE] rounded-[32px]
+              disabled={isCreating || !isConnected || !title.trim()}
+              className="flex-1 px-6 py-3 bg-[#EF4330] rounded-[32px]
                 shadow-[3px_3px_0px_0px_rgba(0,0,0,1.00)]
                 outline outline-2 outline-offset-[-2px] outline-black
                 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1.00)]
@@ -163,35 +166,35 @@ export default function CreateLiveStreamPage() {
                 disabled:cursor-not-allowed
                 transition-all">
               <span className="text-white text-base font-bold font-['Outfit']">
-                {isCreating ? 'Creating Stream...' : '🔴 Start Streaming'}
+                {isCreating ? 'Creating Stream...' : 'Start Streaming'}
               </span>
             </button>
           </div>
         </div>
 
-        {/* Info Section */}
-        <div className="mt-8 p-6 bg-white/20 rounded-[32px] backdrop-blur-sm
-          outline outline-2 outline-white">
-          <h3 className="text-white text-lg font-bold font-['Outfit'] mb-3">
-            📋 Before you go live:
+        {/* Tips Section */}
+        <div className="mt-8 p-6 bg-[#FFEEE5] rounded-[32px]
+          shadow-[5px_5px_0px_1px_rgba(0,0,0,1.00)]
+          outline outline-[3px] outline-offset-[-3px] outline-black">
+          <h3 className="text-black text-lg font-bold font-['Outfit'] mb-4">
+            Before you go live:
           </h3>
-          <ul className="space-y-2 text-white/90 font-['Outfit'] text-sm">
-            <li className="flex items-start gap-2">
-              <span className="text-walrus-mint font-bold">✓</span>
-              <span>Make sure you have a stable internet connection</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-walrus-mint font-bold">✓</span>
-              <span>Test your camera and microphone before streaming</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-walrus-mint font-bold">✓</span>
-              <span>Choose a well-lit and quiet environment</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-walrus-mint font-bold">✓</span>
-              <span>Have engaging content prepared for your audience</span>
-            </li>
+          <ul className="space-y-3">
+            {[
+              'Make sure you have a stable internet connection',
+              'Test your camera and microphone before streaming',
+              'Choose a well-lit and quiet environment',
+              'Have engaging content prepared for your audience',
+            ].map((tip, i) => (
+              <li key={i} className="flex items-start gap-3">
+                <div className="w-6 h-6 flex-shrink-0 bg-[#0668A6] rounded-full flex items-center justify-center mt-0.5">
+                  <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-black text-sm font-medium font-['Outfit']">{tip}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
