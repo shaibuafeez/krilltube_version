@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useWalletContext } from '@/lib/context/WalletContext';
 import { LiveKitRoom, useParticipants } from '@livekit/components-react';
 import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
@@ -177,7 +177,7 @@ function StreamContent({
 export default function WatchStreamPage() {
   const params = useParams();
   const router = useRouter();
-  const currentAccount = useCurrentAccount();
+  const { address } = useWalletContext();
   const roomName = params.roomName as string;
 
   const [token, setToken] = useState('');
@@ -190,15 +190,15 @@ export default function WatchStreamPage() {
   const [viewMode, setViewMode] = useState<'speaker' | 'grid'>('speaker');
 
   useEffect(() => {
-    if (!currentAccount?.address || !roomName) {
+    if (!address || !roomName) {
       // Allow watching without wallet, use anonymous identity
       const anonymousId = `viewer-${Math.random().toString(36).substring(7)}`;
       fetchToken(anonymousId);
       return;
     }
 
-    fetchToken(currentAccount.address);
-  }, [currentAccount?.address, roomName]);
+    fetchToken(address);
+  }, [address, roomName]);
 
   const fetchToken = async (userId: string, role: 'viewer' | 'co-host' = 'viewer') => {
     try {
@@ -210,8 +210,8 @@ export default function WatchStreamPage() {
           roomName,
           userId,
           role,
-          userName: currentAccount?.address
-            ? `User-${currentAccount.address.slice(0, 8)}`
+          userName: address
+            ? `User-${address.slice(0, 8)}`
             : `Anonymous-${userId.slice(0, 8)}`,
         }),
       });
@@ -235,14 +235,14 @@ export default function WatchStreamPage() {
 
   // Poll for role changes - detect when user is promoted to co-host
   useEffect(() => {
-    if (!currentAccount?.address || !streamInfo?.id) {
+    if (!address || !streamInfo?.id) {
       return;
     }
 
     const checkRoleChange = async () => {
       try {
         const response = await fetch(
-          `/api/live/participants?streamId=${streamInfo.id}&userId=${currentAccount.address}`
+          `/api/live/participants?streamId=${streamInfo.id}&userId=${address}`
         );
 
         if (response.ok) {
@@ -254,7 +254,7 @@ export default function WatchStreamPage() {
             setIsRefreshingToken(true);
 
             // Fetch new token with co-host permissions
-            await fetchToken(currentAccount.address, 'co-host');
+            await fetchToken(address, 'co-host');
 
             setIsRefreshingToken(false);
             console.log('[Watch] Token refreshed successfully as co-host');
@@ -272,7 +272,7 @@ export default function WatchStreamPage() {
     const interval = setInterval(checkRoleChange, 3000);
 
     return () => clearInterval(interval);
-  }, [currentAccount?.address, streamInfo?.id, userRole]);
+  }, [address, streamInfo?.id, userRole]);
 
   if (isLoading) {
     return (

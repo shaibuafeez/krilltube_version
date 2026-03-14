@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useCurrentAccount } from '@mysten/dapp-kit';
+import { useWalletContext } from '@/lib/context/WalletContext';
 import { LiveKitRoom, useParticipants } from '@livekit/components-react';
 import LiveChatOverlay from '@/components/LiveChatOverlay';
 import LiveStreamPlayer from '@/components/LiveStreamPlayer';
@@ -87,7 +87,7 @@ function BroadcastContent({
 export default function BroadcastPage() {
   const params = useParams();
   const router = useRouter();
-  const currentAccount = useCurrentAccount();
+  const { address } = useWalletContext();
   const roomName = params.roomName as string;
 
   const [token, setToken] = useState('');
@@ -98,7 +98,7 @@ export default function BroadcastPage() {
   const [viewMode, setViewMode] = useState<'speaker' | 'grid'>('speaker');
 
   useEffect(() => {
-    if (!currentAccount?.address || !roomName) {
+    if (!address || !roomName) {
       return;
     }
 
@@ -110,9 +110,9 @@ export default function BroadcastPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             roomName,
-            userId: currentAccount.address,
+            userId: address,
             role: 'broadcaster',
-            userName: `Broadcaster-${currentAccount.address.slice(0, 8)}`,
+            userName: `Broadcaster-${address.slice(0, 8)}`,
           }),
         });
 
@@ -135,7 +135,7 @@ export default function BroadcastPage() {
     };
 
     fetchToken();
-  }, [currentAccount?.address, roomName]);
+  }, [address, roomName]);
 
   const handleEndStream = () => {
     if (confirm('Are you sure you want to end the stream?')) {
@@ -221,7 +221,7 @@ export default function BroadcastPage() {
               >
                 <BroadcastContent
                   streamInfo={streamInfo}
-                  currentAccount={currentAccount}
+                  currentAccount={{ address }}
                   roomName={roomName}
                   handleEndStream={handleEndStream}
                   isChatOpen={isChatOpen}
